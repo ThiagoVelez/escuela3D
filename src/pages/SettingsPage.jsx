@@ -58,25 +58,6 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
-
-        {/* Database Sync Status */}
-        <div className="glass-card rounded-2xl p-6 border border-white/80">
-          <h3 className="font-display font-bold text-lg text-primary mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined">sync</span>
-            Sincronización con MySQL
-          </h3>
-          <p className="text-xs text-on-surface-variant mb-4">
-            Servidor: <span className="font-semibold text-emerald-700">http://localhost:5000/api</span> (Base de Datos: educol3d_db)
-          </p>
-
-          <button 
-            onClick={() => alert('Sincronización con MySQL completada exitosamente.')}
-            className="px-4 py-2 bg-secondary text-on-secondary font-bold text-xs rounded-xl shadow-md hover:bg-secondary/90 transition-all flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-sm">refresh</span>
-            Sincronizar Datos Ahora
-          </button>
-        </div>
       </div>
     </div>
   );

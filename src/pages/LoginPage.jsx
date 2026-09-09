@@ -181,48 +181,6 @@ export default function LoginPage() {
                   <span>Iniciar Sesión</span>
                   <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </button>
-
-                {/* Quick Demo Access Buttons */}
-                <div className="mt-5 pt-4 border-t border-slate-100">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center mb-2">
-                    Acceso Rápido por Perfil
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('estudiante@educol.edu.co');
-                        setPassword('12345678');
-                      }}
-                      className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[11px] font-bold text-center transition-all shadow-xs active:scale-95"
-                      title="Cargar credenciales de Mateo Gómez (Estudiante)"
-                    >
-                      Estudiante
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('docente@educol.edu.co');
-                        setPassword('12345678');
-                      }}
-                      className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/80 text-[11px] font-bold text-center transition-all shadow-xs active:scale-95"
-                      title="Cargar credenciales de Dra. Valentina Ríos (Docente)"
-                    >
-                      Docente
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('admin@educol.edu.co');
-                        setPassword('12345678');
-                      }}
-                      className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/80 text-[11px] font-bold text-center transition-all shadow-xs active:scale-95"
-                      title="Cargar credenciales de Carlos (Rectoría)"
-                    >
-                      Rector
-                    </button>
-                  </div>
-                </div>
               </form>
             </div>
           ) : (

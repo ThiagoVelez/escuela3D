@@ -15,6 +15,7 @@ import ReportsPage from './pages/ReportsPage';
 import AttendancePage from './pages/AttendancePage';
 import RectorAttendanceReportsPage from './pages/RectorAttendanceReportsPage';
 import CourseStudioPage from './pages/CourseStudioPage';
+import StudentAssignmentsPage from './pages/StudentAssignmentsPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import RightCalendarDrawer from './components/RightCalendarDrawer';
@@ -28,6 +29,8 @@ function MainContent() {
       return <TeacherDashboard />;
     case 'course-studio':
       return <CourseStudioPage />;
+    case 'assignments':
+      return <StudentAssignmentsPage />;
     case 'attendance':
       return <AttendancePage />;
     case 'rector-attendance-reports':

@@ -173,7 +173,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
         {/* Isolation Notice Banner */}
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl mb-6 text-xs text-emerald-900 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span>Este cambio de foto y banner se aplicará <strong>únicamente a tu usuario ({user?.email})</strong> y no modificará el perfil de otros docentes ni directivos.</span>
+          <span>Este cambio de foto y banner se aplicará <strong>únicamente a tu cuenta activa</strong> y no modificará el perfil de otros docentes ni directivos.</span>
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">

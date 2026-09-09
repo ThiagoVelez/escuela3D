@@ -370,7 +370,9 @@ export default function TeacherDashboard() {
                           </div>
                           <div>
                             <div className="font-bold text-slate-900">{std.nombre} {std.apellido || ''}</div>
-                            <div className="text-[11px] text-slate-500">{std.email}</div>
+                            <div className="text-[11px] text-slate-500 font-mono">
+                              {std.email ? `${std.email.split('@')[0].slice(0, 2)}••••@${std.email.split('@')[1] || ''}` : '••••••••'}
+                            </div>
                           </div>
                         </td>
                         <td className="p-3.5">

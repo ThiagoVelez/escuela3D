@@ -156,8 +156,8 @@ export default function StaffManagementPage() {
                   <td className="p-3.5 pl-6 font-bold text-slate-900">
                     {item.nombre}
                   </td>
-                  <td className="p-3.5 text-slate-600">
-                    {item.email}
+                  <td className="p-3.5 text-slate-600 font-mono">
+                    {item.email ? `${item.email.split('@')[0].slice(0, 2)}••••@${item.email.split('@')[1] || ''}` : '••••••••'}
                   </td>
                   <td className="p-3.5">
                     <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${

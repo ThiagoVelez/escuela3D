@@ -11,12 +11,16 @@ import {
   Building, 
   Sliders, 
   Star,
-  ShieldCheck
+  ShieldCheck,
+  LogOut,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, sidebarOpen } = useAuth();
+  const { user, sidebarOpen, logout } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
 
   // Helper to resolve background banner style or image URL
   const getBannerStyle = () => {
@@ -42,6 +46,17 @@ export default function ProfilePage() {
 
   const bannerStyle = getBannerStyle();
 
+  // Helper to mask sensitive email
+  const maskEmail = (email) => {
+    if (!email) return '••••••••••••••••';
+    const parts = email.split('@');
+    if (parts.length !== 2) return '••••••••••••••••';
+    const [userPart, domain] = parts;
+    const visiblePrefix = userPart.slice(0, Math.min(2, userPart.length));
+    const maskedUser = visiblePrefix + '•'.repeat(Math.max(4, userPart.length - visiblePrefix.length));
+    return `${maskedUser}@${domain}`;
+  };
+
   return (
     <div className={`flex-1 ${sidebarOpen ? 'md:ml-72' : 'md:ml-0'} p-4 sm:p-6 md:p-8 overflow-y-auto z-10 relative pt-20 md:pt-24 transition-all duration-300`}>
       
@@ -62,15 +77,26 @@ export default function ProfilePage() {
             Perfil EduCol Institucional
           </div>
 
-          {/* Customize Profile Button */}
-          <button
-            onClick={() => setIsEditOpen(true)}
-            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 text-white font-bold text-xs px-3 sm:px-4 py-2 rounded-xl shadow-lg transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
-          >
-            <Sliders className="w-4 h-4" />
-            <span className="hidden sm:inline">Ajustes / Personalizar</span>
-            <span className="sm:hidden">Editar</span>
-          </button>
+          {/* Action Buttons: Personalizar y Cerrar Sesión */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <button
+              onClick={() => setIsEditOpen(true)}
+              className="bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 text-white font-bold text-xs px-3 sm:px-4 py-2 rounded-xl shadow-lg transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
+            >
+              <Sliders className="w-4 h-4" />
+              <span className="hidden sm:inline">Ajustes / Personalizar</span>
+              <span className="sm:hidden">Editar</span>
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-rose-600/85 hover:bg-rose-700 backdrop-blur-md border border-rose-400/80 text-white font-bold text-xs px-3 sm:px-4 py-2 rounded-xl shadow-lg transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
+              title="Cerrar sesión de forma segura"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
         </div>
 
         {/* Profile Details Container */}
@@ -116,11 +142,33 @@ export default function ProfilePage() {
           {/* Quick Info Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-slate-200/80 text-xs">
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
-              <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
-                <Mail className="w-3.5 h-3.5 text-slate-400" />
-                Correo Electrónico
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  Correo Institucional
+                </span>
+                <button 
+                  type="button"
+                  onClick={() => setShowEmail(!showEmail)}
+                  className="text-slate-400 hover:text-primary p-0.5 rounded transition-colors flex items-center gap-1 text-[11px]"
+                  title={showEmail ? "Ocultar correo" : "Ver correo"}
+                >
+                  {showEmail ? (
+                    <>
+                      <EyeOff className="w-3.5 h-3.5" />
+                      <span className="text-[10px]">Ocultar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-3.5 h-3.5" />
+                      <span className="text-[10px]">Ver</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <span className="font-bold text-slate-800 text-xs sm:text-sm break-all font-mono">
+                {showEmail ? user?.email : maskEmail(user?.email)}
               </span>
-              <span className="font-bold text-slate-800 text-xs sm:text-sm break-all">{user?.email}</span>
             </div>
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
               <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
@@ -144,7 +192,7 @@ export default function ProfilePage() {
           {/* Profile Isolation Guarantee Note */}
           <div className="mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-200/60 flex items-center gap-2 text-xs text-slate-600">
             <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>Perfil y foto 100% aislados para <strong>{user?.email}</strong>. Los cambios realizados aquí no alteran a otros docentes ni al rector.</span>
+            <span>Perfil y foto 100% aislados para tu cuenta institucional activa. Los cambios realizados aquí no alteran a otros docentes ni al rector.</span>
           </div>
 
         </div>
@@ -198,6 +246,27 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Session Security Card - Cerrar Sesión desde el perfil */}
+      <div className="mt-6 rounded-3xl p-5 sm:p-6 border border-rose-100 bg-rose-50/60 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div>
+          <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-rose-600" />
+            Control de Sesión y Seguridad
+          </h4>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Puedes cerrar tu sesión de forma segura en este dispositivo en cualquier momento.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={logout}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Cerrar Sesión Activa</span>
+        </button>
       </div>
 
       {/* Edit Profile Modal */}

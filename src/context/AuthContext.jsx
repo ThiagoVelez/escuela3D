@@ -93,10 +93,10 @@ const DEFAULT_NOTIFICATIONS = {
     {
       id: 301,
       title: 'Alerta del Sistema',
-      text: 'Base de datos MySQL conectada y sincrónica al 100%.',
+      text: 'Todos los servicios del campus institucional operan con normalidad.',
       time: 'Hace 30 min',
       read: false,
-      icon: 'dns',
+      icon: 'check_circle',
       color: 'text-emerald-600'
     }
   ]

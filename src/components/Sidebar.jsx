@@ -6,7 +6,6 @@ import {
   GraduationCap, 
   Settings, 
   HelpCircle, 
-  LogOut, 
   Users, 
   CheckSquare, 
   FileText, 
@@ -17,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { user, activeTab, setActiveTab, logout, sidebarOpen, setSidebarOpen } = useAuth();
+  const { user, activeTab, setActiveTab, sidebarOpen, setSidebarOpen } = useAuth();
 
   const getNavItems = () => {
     if (user.rol === 'DOCENTE') {
@@ -34,15 +33,15 @@ export default function Sidebar() {
       return [
         { id: 'staff-management', label: 'Gestión de Personal', icon: ShieldCheck },
         { id: 'academic-setup', label: 'Asignación & Estructura Académica', icon: GitBranch },
-        { id: 'course-studio', label: 'Diseño & Gestión de Cátedras', icon: School },
         { id: 'schedule-builder', label: 'Gestión de Horarios', icon: Clock },
         { id: 'rector-attendance-reports', label: 'Reportes de Asistencia & Horarios', icon: FileText },
         { id: 'settings', label: 'Configuración', icon: Settings },
       ];
     }
-    // Default ESTUDIANTE (Laboratorios 3D eliminados para optimización de recursos)
+    // Default ESTUDIANTE
     return [
       { id: 'subjects', label: 'Materias Activas', icon: BookOpen },
+      { id: 'assignments', label: 'Trabajos & Evaluaciones', icon: CheckSquare },
       { id: 'schedule-view', label: 'Horario de Clases', icon: Calendar },
       { id: 'grades', label: 'Calificaciones', icon: GraduationCap },
       { id: 'settings', label: 'Configuración', icon: Settings },
@@ -95,7 +94,7 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Footer / Help & Logout */}
+        {/* Footer: Ayuda y Soporte Únicamente (Cerrar Sesión se reubica dentro del Perfil) */}
         <div className="mt-auto space-y-1.5 pt-3 border-t border-slate-200/60">
           <button 
             onClick={() => handleNavClick('help')}
@@ -105,13 +104,6 @@ export default function Sidebar() {
           >
             <HelpCircle className="w-4 h-4 flex-shrink-0 group-hover:scale-105" />
             <span>Ayuda y Soporte</span>
-          </button>
-          <button 
-            onClick={logout}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 text-rose-600 hover:bg-rose-50 rounded-xl font-semibold text-xs md:text-sm group transition-all hover:translate-x-1"
-          >
-            <LogOut className="w-4 h-4 flex-shrink-0 group-hover:scale-105" />
-            <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>

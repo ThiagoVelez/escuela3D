@@ -159,8 +159,8 @@ export default function SubjectDetailModal({ subject, onClose }) {
   const teacherEmail = subject.teacher?.email || 'docente@educol.edu.co';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/75 backdrop-blur-xs animate-fadeIn">
-      <div className="relative w-full max-w-5xl max-h-[92vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-slate-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 pt-20 md:pt-24 pb-6 bg-slate-950/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+      <div className="relative w-full max-w-5xl max-h-[85vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-slate-200 my-auto">
         
         {/* Top Accent Gradient */}
         <div className={`h-2.5 w-full bg-gradient-to-r ${theme.bannerGradient}`}></div>
