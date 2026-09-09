@@ -1,8 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { MOCK_SUBJECTS } from '../data/mockData';
+import { getUniversityCourses, UNIVERSITY_THEMES } from '../services/coursesService';
 import { fetchAssignments, submitAssignment } from '../services/api';
-import { Zap, BookOpen, ArrowRight, CheckCircle2, Send, Database } from 'lucide-react';
+import { 
+  Zap, 
+  BookOpen, 
+  ArrowRight, 
+  CheckCircle2, 
+  Send, 
+  Database,
+  School,
+  Compass,
+  Leaf,
+  Calculator,
+  Dna,
+  Atom,
+  GraduationCap,
+  Globe,
+  Microscope,
+  Award
+} from 'lucide-react';
+
+const ICON_MAP = {
+  Compass,
+  Leaf,
+  BookOpen,
+  Calculator,
+  Dna,
+  Atom,
+  GraduationCap,
+  Globe,
+  Microscope
+};
 
 export default function DashboardPage() {
   const { user, setSelectedLab, setSelectedSubject, setActiveTab, sidebarOpen, addNotification } = useAuth();
@@ -11,9 +40,18 @@ export default function DashboardPage() {
   const [submissionText, setSubmissionText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submittedMessage, setSubmittedMessage] = useState(false);
+  const [universityCourses, setUniversityCourses] = useState([]);
 
   useEffect(() => {
     loadAssignments();
+    setUniversityCourses(getUniversityCourses());
+
+    const handleCoursesUpdated = (e) => {
+      setUniversityCourses(e.detail);
+    };
+
+    window.addEventListener('educol_courses_updated', handleCoursesUpdated);
+    return () => window.removeEventListener('educol_courses_updated', handleCoursesUpdated);
   }, []);
 
   const loadAssignments = async () => {
@@ -75,107 +113,102 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Active Subjects Grid (Bento Style) */}
+      {/* Active Subjects Grid (University Academic Bento Style) */}
       <section className="mb-10">
-        <h2 className="font-display text-lg sm:text-xl font-bold text-on-background mb-4 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-primary" />
-          Materias Activas
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-lg sm:text-xl font-bold text-on-background flex items-center gap-2">
+            <School className="w-5 h-5 text-primary" />
+            <span>Cátedras & Materias Universitarias Activas</span>
+          </h2>
+          <span className="text-xs font-semibold text-slate-500 bg-white/70 px-3 py-1 rounded-full border border-slate-200">
+            {universityCourses.length} {universityCourses.length === 1 ? 'Cátedra Inscrita' : 'Cátedras Inscritas'}
+          </span>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          
-          {/* Card 1: Math */}
-          <div 
-            onClick={() => setSelectedSubject(MOCK_SUBJECTS[0])}
-            className="glass-card rounded-2xl p-6 flex flex-col h-60 relative overflow-hidden group cursor-pointer border border-white/80 hover:shadow-xl hover:scale-[1.01] transition-all bg-white/70"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
-            
-            <div className="flex justify-between items-start mb-auto z-10">
-              <div className="p-3 bg-white/80 rounded-xl backdrop-blur-sm border border-white/40 shadow-sm text-primary font-bold">
-                <span className="material-symbols-outlined text-2xl">calculate</span>
-              </div>
-              <span className="font-semibold text-xs bg-primary text-white px-3 py-1 rounded-full shadow-sm">
-                Ver Materia
-              </span>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {universityCourses.map((course) => {
+            const theme = UNIVERSITY_THEMES.find(t => t.id === course.themeId) || UNIVERSITY_THEMES[0];
+            const IconComponent = ICON_MAP[course.iconName] || BookOpen;
 
-            <div className="z-10 mt-auto">
-              <h3 className="font-display font-bold text-lg sm:text-xl text-on-background mb-1 group-hover:text-primary transition-colors">
-                Matemáticas
-              </h3>
-              <p className="text-xs text-on-surface-variant line-clamp-1 mb-2">
-                Vectores R³, geometría analítica y cálculo espacial.
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="h-2 flex-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary w-[65%] rounded-full"></div>
+            return (
+              <div 
+                key={course.id}
+                onClick={() => setSelectedSubject(course)}
+                className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-sm hover:shadow-xl hover:scale-[1.015] transition-all cursor-pointer flex flex-col justify-between overflow-hidden group relative"
+              >
+                {/* Top Banner Accent */}
+                <div className={`h-2.5 w-full bg-gradient-to-r ${theme.bannerGradient}`}></div>
+
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    {/* Faculty & Code Badge */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate max-w-[170px]" title={course.faculty}>
+                        {course.faculty || 'Facultad Institucional'}
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md ${theme.badge}`}>
+                          {course.code || 'UNIV-101'}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                          {course.credits || 4} CR
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Icon & Title */}
+                    <div className="flex items-start gap-3.5 mb-3">
+                      <div className={`w-11 h-11 rounded-xl ${theme.bgLight} flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5 transition-transform group-hover:scale-105`}>
+                        <IconComponent className={`w-5 h-5 ${theme.textPrimary}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 leading-snug group-hover:text-primary transition-colors">
+                          {course.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-1 italic mt-0.5">
+                          {course.subtitle || 'Cátedra de Formación Superior'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Academic Info Pills */}
+                    <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-100 space-y-1 text-xs text-slate-600 mb-4">
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-slate-500 font-medium">Docente:</span>
+                        <strong className="text-slate-800 truncate max-w-[160px]">{course.teacher?.name || 'Docente Titular'}</strong>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-slate-500 font-medium">Horas / Semana:</span>
+                        <strong className="text-slate-800">{course.weeklyHours || 4} Horas Semanales</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress & Enter Action */}
+                  <div className="pt-3 border-t border-slate-100 mt-auto">
+                    <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
+                      <span className="text-slate-600">Avance Curricular</span>
+                      <span className="text-slate-900">{course.progress || 0}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-3">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500" 
+                        style={{ 
+                          width: `${course.progress || 0}%`,
+                          backgroundColor: theme.primary 
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs font-bold text-primary group-hover:translate-x-0.5 transition-transform">
+                      <span>Ingresar al Aula Virtual</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
-                <span className="font-semibold text-xs text-on-surface-variant">65%</span>
               </div>
-            </div>
-          </div>
-
-          {/* Card 2: Science (Biology) */}
-          <div 
-            onClick={() => setSelectedSubject(MOCK_SUBJECTS[1])}
-            className="glass-card rounded-2xl p-6 flex flex-col h-60 relative overflow-hidden group cursor-pointer border border-white/80 hover:shadow-xl hover:scale-[1.01] transition-all bg-white/70"
-          >
-            <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mb-10 transition-transform group-hover:scale-150"></div>
-            
-            <div className="flex justify-between items-start mb-auto z-10">
-              <div className="p-3 bg-white/80 rounded-xl backdrop-blur-sm border border-white/40 shadow-sm text-emerald-700 font-bold">
-                <span className="material-symbols-outlined text-2xl">science</span>
-              </div>
-              <span className="font-semibold text-xs bg-emerald-700 text-white px-3 py-1 rounded-full shadow-sm">
-                Flora Andina
-              </span>
-            </div>
-
-            <div className="z-10 mt-auto">
-              <h3 className="font-display font-bold text-lg sm:text-xl text-on-background mb-1 group-hover:text-emerald-700 transition-colors">
-                Biología
-              </h3>
-              <p className="text-xs text-on-surface-variant line-clamp-2 mb-2">
-                Estructura celular de la flora endémica andina y ecosistemas colombianos.
-              </p>
-              <div className="flex items-center justify-between text-xs text-emerald-700 font-bold">
-                <span>Ver Materia</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Spanish / Literature */}
-          <div 
-            onClick={() => setSelectedSubject(MOCK_SUBJECTS[2])}
-            className="glass-card rounded-2xl p-6 flex flex-col h-60 relative overflow-hidden group cursor-pointer border border-white/80 hover:shadow-xl hover:scale-[1.01] transition-all bg-white/70"
-          >
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl transition-transform group-hover:scale-125"></div>
-            
-            <div className="flex justify-between items-start mb-auto z-10">
-              <div className="p-3 bg-white/80 rounded-xl backdrop-blur-sm border border-white/40 shadow-sm text-amber-800 font-bold">
-                <BookOpen className="w-6 h-6 text-amber-800" />
-              </div>
-              <span className="font-semibold text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-200">
-                Macondo & Letras
-              </span>
-            </div>
-
-            <div className="z-10 mt-auto">
-              <h3 className="font-display font-bold text-lg sm:text-xl text-on-background mb-1 group-hover:text-amber-800 transition-colors">
-                Literatura Colombiana
-              </h3>
-              <p className="text-xs text-on-surface-variant line-clamp-2 mb-2">
-                "Cien años de soledad" - Contexto histórico y análisis crítico.
-              </p>
-              <div className="flex items-center justify-between text-xs text-amber-800 font-bold">
-                <span>Ver Materia</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
-
+            );
+          })}
         </div>
       </section>
 

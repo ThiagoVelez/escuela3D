@@ -14,6 +14,7 @@ import ScheduleViewPage from './pages/ScheduleViewPage';
 import ReportsPage from './pages/ReportsPage';
 import AttendancePage from './pages/AttendancePage';
 import RectorAttendanceReportsPage from './pages/RectorAttendanceReportsPage';
+import CourseStudioPage from './pages/CourseStudioPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import RightCalendarDrawer from './components/RightCalendarDrawer';
@@ -25,6 +26,8 @@ function MainContent() {
   switch (activeTab) {
     case 'teacher-panel':
       return <TeacherDashboard />;
+    case 'course-studio':
+      return <CourseStudioPage />;
     case 'attendance':
       return <AttendancePage />;
     case 'rector-attendance-reports':

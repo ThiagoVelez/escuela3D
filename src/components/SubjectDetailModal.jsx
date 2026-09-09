@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { UNIVERSITY_THEMES } from '../services/coursesService';
 import { 
   X, 
   BookOpen, 
@@ -17,12 +18,23 @@ import {
   Leaf, 
   Droplet, 
   Dna,
-  ArrowRight
+  ArrowRight,
+  School,
+  FileText,
+  Layers,
+  Download,
+  Calendar,
+  Clock,
+  Mail,
+  HelpCircle,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 
 export default function SubjectDetailModal({ subject, onClose }) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('interactive'); // 'interactive', 'syllabus', 'quiz'
+  const [activeTab, setActiveTab] = useState('syllabus'); // 'syllabus', 'units', 'interactive', 'resources'
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   // Math State
   const [vx, setVx] = useState(3);
@@ -49,9 +61,11 @@ export default function SubjectDetailModal({ subject, onClose }) {
 
   if (!subject) return null;
 
-  const isMath = subject.code === 'MAT-3D' || subject.title?.toLowerCase().includes('matemática');
-  const isLit = subject.code === 'LIT-3D' || subject.title?.toLowerCase().includes('literatura');
-  const isBio = subject.code === 'BIO-3D' || subject.title?.toLowerCase().includes('biología');
+  const isMath = subject.interactiveType === 'math' || subject.code?.includes('MAT') || subject.code?.includes('CALC') || subject.title?.toLowerCase().includes('matemática') || subject.title?.toLowerCase().includes('cálculo');
+  const isLit = subject.interactiveType === 'literature' || subject.code?.includes('LIT') || subject.title?.toLowerCase().includes('literatura');
+  const isBio = subject.interactiveType === 'bio' || subject.code?.includes('BIO') || subject.title?.toLowerCase().includes('biología');
+
+  const theme = UNIVERSITY_THEMES.find(t => t.id === subject.themeId) || UNIVERSITY_THEMES[0];
 
   // Calculate Vector Magnitude
   const vectorMagnitude = Math.sqrt(vx * vx + vy * vy + vz * vz).toFixed(2);
@@ -62,12 +76,12 @@ export default function SubjectDetailModal({ subject, onClose }) {
     if (correct) {
       setMathQuizResult({
         success: true,
-        msg: `¡Cálculo correcto! Magnitud calculada: ${vectorMagnitude} u. El docente ha recibido tu entrega.`
+        msg: `¡Cálculo correcto! Magnitud calculada: ${vectorMagnitude} u. El docente ha recibido tu entrega de cátedra.`
       });
     } else {
       setMathQuizResult({
         success: false,
-        msg: `El resultado no coincide. Revisa la raíz: √(${vx}² + ${vy}² + ${vz}²) = ${vectorMagnitude} u.`
+        msg: `El resultado no coincide. Revisa la raíz euclidiana: √(${vx}² + ${vy}² + ${vz}²) = ${vectorMagnitude} u.`
       });
     }
   };
@@ -78,44 +92,160 @@ export default function SubjectDetailModal({ subject, onClose }) {
     setLitSubmitted(true);
   };
 
+  const handleDownloadSyllabus = () => {
+    setDownloadSuccess(true);
+    setTimeout(() => setDownloadSuccess(false), 3000);
+  };
+
+  // Syllabus Fallbacks
+  const syllabusDesc = subject.syllabus?.description || subject.description || 'Formación académica rigurosa con enfoque metodológico universitario.';
+  const generalObjective = subject.syllabus?.generalObjective || 'Desarrollar competencias teóricas y experimentales en la disciplina.';
+  const competencies = subject.syllabus?.competencies || [
+    'Modelamiento y resolución rigurosa de problemas disciplinares.',
+    'Aplicación de metodologías analíticas fundamentadas en literatura científica.',
+    'Pensamiento crítico y formulación de proyectos académicos.'
+  ];
+  const evaluationMethodology = subject.syllabus?.evaluationMethodology || '30% Talleres prácticos, 30% Seminarios y proyectos, 40% Evaluaciones parciales de cátedra.';
+
+  // Units Fallbacks
+  const units = subject.units || [
+    {
+      id: 'u1',
+      title: 'Unidad 1: Fundamentos y Epistemología de la Cátedra',
+      description: 'Definiciones primarias, marco conceptual y aplicaciones.',
+      hours: 16,
+      weight: '30%',
+      status: 'Aprobado (5.0)',
+      lessons: ['Conceptos introductorios', 'Metodología analítica', 'Estudio de casos']
+    },
+    {
+      id: 'u2',
+      title: 'Unidad 2: Desarrollo y Análisis de Casos de Estudio',
+      description: 'Resolución de problemas contextualizados a la realidad colombiana.',
+      hours: 18,
+      weight: '35%',
+      status: 'Aprobado (4.8)',
+      lessons: ['Análisis empírico', 'Talleres prácticos aplicados']
+    },
+    {
+      id: 'u3',
+      title: 'Unidad 3: Taller Integral y Proyecto de Cátedra (En Curso)',
+      description: 'Evaluación de competencias y entrega de resultados.',
+      hours: 20,
+      weight: '35%',
+      status: 'Avance 75%',
+      lessons: ['Integración curricular', 'Sustentación de resultados']
+    }
+  ];
+
+  // Resources Fallbacks
+  const resources = subject.resources || [
+    {
+      title: 'Tratado Académico de Referencia Institucional (Edición Universitaria)',
+      type: 'Texto Guía Oficial de Cátedra',
+      author: 'Comité Editorial Universitario',
+      callNumber: 'BIB-COL-2026'
+    },
+    {
+      title: 'Guía Metodológica de Cátedra y Rúbricas de Evaluación',
+      type: 'Documento Oficial de la Facultad (PDF)',
+      author: 'Facultad Académica',
+      callNumber: 'DOC-EDCOL-01'
+    }
+  ];
+
+  const teacherName = subject.teacher?.name || subject.teacher || 'Docente Titular';
+  const teacherOfficeHours = subject.teacher?.officeHours || 'Martes y Jueves: 2:00 PM - 4:00 PM';
+  const teacherEmail = subject.teacher?.email || 'docente@educol.edu.co';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/75 backdrop-blur-xs animate-fadeIn">
       <div className="relative w-full max-w-5xl max-h-[92vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-slate-200">
         
-        {/* Top Header */}
-        <div className="px-5 py-4 border-b border-slate-200/80 flex items-center justify-between bg-slate-50/80 backdrop-blur-md flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary text-white flex items-center justify-center shadow-md font-bold">
-              <BookOpen className="w-5 h-5" />
+        {/* Top Accent Gradient */}
+        <div className={`h-2.5 w-full bg-gradient-to-r ${theme.bannerGradient}`}></div>
+
+        {/* Top Header: University Official Lecture Header */}
+        <div className="px-6 py-4 border-b border-slate-200/80 bg-slate-50/90 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3.5">
+            <div className={`w-11 h-11 rounded-2xl ${theme.bgLight} flex items-center justify-center shadow-xs font-bold flex-shrink-0`}>
+              <School className={`w-6 h-6 ${theme.textPrimary}`} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-display font-bold text-lg md:text-xl text-slate-900 leading-tight">
-                  {subject.title}
-                </h2>
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-slate-200 text-slate-700">
+                  {subject.faculty || 'Facultad Institucional'}
+                </span>
+                <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md ${theme.badge}`}>
                   {subject.code || 'ASIG-2026'}
                 </span>
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  {subject.credits || 4} Créditos Académicos
+                </span>
               </div>
+              <h2 className="font-display font-bold text-lg md:text-xl text-slate-900 leading-tight mt-1">
+                {subject.title}
+              </h2>
               <p className="text-xs text-slate-500 hidden sm:block">
-                Docente: {subject.teacher || 'Docente Institucional'} • Grado: {user?.grado || '10° Bachillerato'}
+                Cátedra: {teacherName} • {teacherOfficeHours}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadSyllabus}
+              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs hidden md:flex items-center gap-1.5 transition-colors"
+              title="Descargar Syllabus de Cátedra Oficial en PDF"
+            >
+              <Download className="w-3.5 h-3.5 text-slate-500" />
+              <span>Syllabus PDF</span>
+            </button>
+
             <button 
               onClick={onClose}
               className="w-9 h-9 rounded-xl bg-slate-200/80 hover:bg-rose-100 hover:text-rose-600 text-slate-600 flex items-center justify-center transition-colors"
-              title="Cerrar ventana"
+              title="Cerrar aula virtual"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Download Feedback Banner */}
+        {downloadSuccess && (
+          <div className="bg-emerald-50 text-emerald-800 border-b border-emerald-200 px-6 py-2 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Syllabus oficial descargado exitosamente con firma digital del claustro docente.</span>
+          </div>
+        )}
+
+        {/* University Tabs Navigation */}
         <div className="flex border-b border-slate-200 bg-white px-4 sm:px-6 gap-2 sm:gap-4 flex-shrink-0 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('syllabus')}
+            className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'syllabus'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Syllabus & Presentación</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('units')}
+            className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'units'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>Módulos & Unidades Temáticas ({units.length})</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('interactive')}
             className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -125,38 +255,168 @@ export default function SubjectDetailModal({ subject, onClose }) {
             }`}
           >
             <Compass className="w-4 h-4" />
-            <span>Módulo de Aprendizaje</span>
+            <span>Cátedra Interactiva & Taller Práctico</span>
           </button>
+
           <button
-            onClick={() => setActiveTab('syllabus')}
+            onClick={() => setActiveTab('resources')}
             className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'syllabus'
+              activeTab === 'resources'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
-            <GraduationCap className="w-4 h-4" />
-            <span>Programa Académico</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('quiz')}
-            className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'quiz'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <Award className="w-4 h-4" />
-            <span>Taller & Evaluación</span>
+            <BookOpen className="w-4 h-4" />
+            <span>Biblioteca & Recursos ({resources.length})</span>
           </button>
         </div>
 
-        {/* Body Content */}
+        {/* Modal Body Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50">
           
-          {/* TAB 1: INTERACTIVE LEARNING (LIGHTWEIGHT 2D/SVG) */}
+          {/* TAB 1: SYLLABUS & PRESENTACIÓN */}
+          {activeTab === 'syllabus' && (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              
+              {/* Executive Summary Card */}
+              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                  <FileText className="w-4 h-4" />
+                  <span>Justificación Curricular & Descripción Académica</span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans">
+                  {syllabusDesc}
+                </p>
+              </div>
+
+              {/* General Objective Card */}
+              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-2">
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+                  <GraduationCap className="w-4 h-4 text-primary" />
+                  <span>Objetivo General de Aprendizaje</span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+                  "{generalObjective}"
+                </p>
+              </div>
+
+              {/* Competencies Breakdown */}
+              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+                  <Award className="w-4 h-4 text-primary" />
+                  <span>Competencias Formativas Institucionales</span>
+                </div>
+                <div className="space-y-2.5">
+                  {competencies.map((comp, idx) => (
+                    <div key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-slate-700">
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {idx + 1}
+                      </span>
+                      <span>{comp}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Evaluation Scheme and Teacher Contact */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-2">
+                  <div className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Sistema de Evaluación Porcentual</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {evaluationMethodology}
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-2">
+                  <div className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    <span>Atención y Asesorías de Cátedra</span>
+                  </div>
+                  <div className="text-xs text-slate-600 space-y-1">
+                    <div>Titular: <strong className="text-slate-800">{teacherName}</strong></div>
+                    <div>Correo: <strong className="text-slate-800">{teacherEmail}</strong></div>
+                    <div>Horario: <strong className="text-slate-800">{teacherOfficeHours}</strong></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 2: UNIDADES TEMÁTICAS */}
+          {activeTab === 'units' && (
+            <div className="space-y-4 max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-display font-bold text-base text-slate-900 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-primary" />
+                  <span>Estructura de Contenidos Modulares</span>
+                </h3>
+                <span className="text-xs text-slate-500">{units.length} unidades planificadas</span>
+              </div>
+
+              <div className="space-y-3">
+                {units.map((unit, idx) => (
+                  <div 
+                    key={unit.id || idx}
+                    className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-primary/40 transition-all space-y-3"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-7 h-7 rounded-xl bg-primary/10 text-primary font-extrabold text-xs flex items-center justify-center flex-shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <h4 className="font-display font-bold text-sm text-slate-900">
+                            {unit.title}
+                          </h4>
+                          <span className="text-[11px] text-slate-500">
+                            {unit.hours || 16} Horas lectivas • Ponderación: {unit.weight || '30%'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className={`self-start sm:self-auto px-3 py-1 rounded-full text-[11px] font-bold ${
+                        unit.status?.includes('Aprobado')
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          : unit.status?.includes('Avance')
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {unit.status || 'En Desarrollo'}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {unit.description}
+                    </p>
+
+                    {unit.lessons && unit.lessons.length > 0 && (
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                          Temas y Lecciones Comprendidas:
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {unit.lessons.map((les, lIdx) => (
+                            <div key={lIdx} className="text-xs text-slate-700 flex items-center gap-1.5">
+                              <ChevronRight className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                              <span className="truncate">{les}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: CÁTEDRA INTERACTIVA & TALLER PRÁCTICO (LIGHTWEIGHT SVG) */}
           {activeTab === 'interactive' && (
-            <div>
+            <div className="max-w-4xl mx-auto">
               {isMath ? (
                 /* MATHEMATICS MODULE */
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -168,7 +428,7 @@ export default function SubjectDetailModal({ subject, onClose }) {
                           <Compass className="w-4 h-4 text-primary" />
                           Representación Vectorial Espacial (R³)
                         </span>
-                        <span className="text-xs font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">
+                        <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded-full">
                           v = ({vx}, {vy}, {vz})
                         </span>
                       </div>
@@ -213,8 +473,8 @@ export default function SubjectDetailModal({ subject, onClose }) {
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                      <span>Proyección ortogonal vectorial sin sobrecarga gráfica.</span>
-                      <span className="font-semibold text-primary">Cálculo en tiempo real</span>
+                      <span>Proyección ortogonal euclídea vectorial sin sobrecarga gráfica.</span>
+                      <span className="font-semibold text-primary">Cálculo analítico en tiempo real</span>
                     </div>
                   </div>
 
@@ -223,7 +483,7 @@ export default function SubjectDetailModal({ subject, onClose }) {
                     {/* Magnitude Display */}
                     <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-between">
                       <div>
-                        <div className="text-xs font-bold text-slate-600">Magnitud Escalar |v|</div>
+                        <div className="text-xs font-bold text-slate-600">Norma Euclídea |v|</div>
                         <div className="text-2xl font-extrabold text-primary mt-0.5">
                           {vectorMagnitude} <span className="text-xs font-medium text-slate-500">unidades</span>
                         </div>
@@ -271,13 +531,39 @@ export default function SubjectDetailModal({ subject, onClose }) {
                         />
                       </div>
 
-                      <button 
-                        onClick={() => setActiveTab('quiz')}
-                        className="w-full mt-2 py-2.5 px-4 bg-primary text-white rounded-xl font-bold text-xs shadow hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-                      >
-                        <span>Completar Ejercicio de Clase</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
+                      {/* Quiz Form Integrated */}
+                      <form onSubmit={handleMathQuizSubmit} className="pt-2 border-t border-slate-100 space-y-2">
+                        <label className="block font-bold text-slate-700 text-[11px]">
+                          Comprobar Magnitud Teórica:
+                        </label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="number"
+                            step="0.01"
+                            value={mathAnswer}
+                            onChange={(e) => setMathAnswer(e.target.value)}
+                            placeholder={`Ej: ${vectorMagnitude}`}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none"
+                            required
+                          />
+                          <button 
+                            type="submit"
+                            className="py-1.5 px-3 bg-primary text-white rounded-xl font-bold text-xs shadow-xs hover:bg-primary/90 flex items-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Validar</span>
+                          </button>
+                        </div>
+
+                        {mathQuizResult && (
+                          <div className={`p-2.5 rounded-xl border text-[11px] font-bold flex items-center gap-2 ${
+                            mathQuizResult.success ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-rose-50 text-rose-800 border-rose-300'
+                          }`}>
+                            {mathQuizResult.success ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <X className="w-3.5 h-3.5 flex-shrink-0" />}
+                            <span>{mathQuizResult.msg}</span>
+                          </div>
+                        )}
+                      </form>
                     </div>
                   </div>
                 </div>
@@ -293,7 +579,7 @@ export default function SubjectDetailModal({ subject, onClose }) {
                       })}
                       className={`p-4 rounded-2xl border text-left transition-all ${
                         macondoHotspot.id === 'casa-buendia'
-                          ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-[1.02]'
+                          ? 'bg-amber-600 text-white border-amber-700 shadow-md scale-[1.02]'
                           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                       }`}
                     >
@@ -327,7 +613,7 @@ export default function SubjectDetailModal({ subject, onClose }) {
                       })}
                       className={`p-4 rounded-2xl border text-left transition-all ${
                         macondoHotspot.id === 'pescaditos'
-                          ? 'bg-amber-600 text-white border-amber-700 shadow-md scale-[1.02]'
+                          ? 'bg-rose-700 text-white border-rose-800 shadow-md scale-[1.02]'
                           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                       }`}
                     >
@@ -343,9 +629,44 @@ export default function SubjectDetailModal({ subject, onClose }) {
                       <Sparkles className="w-4 h-4 text-amber-500" />
                       <span>{macondoHotspot.title}</span>
                     </div>
-                    <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
+                    <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-serif">
                       {macondoHotspot.detail}
                     </p>
+                  </div>
+
+                  {/* Essay Submission */}
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    {litSubmitted ? (
+                      <div className="p-4 text-center space-y-2">
+                        <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                        <div className="font-bold text-base text-slate-900">¡Ensayo Académico Recibido por el Docente!</div>
+                        <div className="text-xs text-slate-500">
+                          Tu texto ha sido registrado en la plataforma institucional para su evaluación formativa.
+                        </div>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleLitEssaySubmit} className="space-y-3">
+                        <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-primary" />
+                          <span>Taller de Crítica Literaria: Redacción Breve</span>
+                        </h4>
+                        <textarea
+                          rows="4"
+                          value={litEssayText}
+                          onChange={(e) => setLitEssayText(e.target.value)}
+                          placeholder="Escribe tu análisis argumentativo sobre el espacio simbólico seleccionado..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-primary"
+                          required
+                        />
+                        <button
+                          type="submit"
+                          className="py-2.5 px-4 bg-primary text-white rounded-xl font-bold text-xs shadow-xs hover:bg-primary/90 flex items-center gap-2"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Enviar Entrega al Profesor</span>
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -418,121 +739,53 @@ export default function SubjectDetailModal({ subject, onClose }) {
             </div>
           )}
 
-          {/* TAB 2: SYLLABUS */}
-          {activeTab === 'syllabus' && (
-            <div className="space-y-4">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="font-bold text-sm text-slate-900">Unidad 1: Fundamentos y Conceptos Clave</div>
-                  <div className="text-xs text-slate-500">Definiciones principales, contexto y aplicaciones prácticas.</div>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">Nota: 5.0 (Aprobado)</span>
+          {/* TAB 4: BIBLIOTECA & RECURSOS */}
+          {activeTab === 'resources' && (
+            <div className="space-y-4 max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-display font-bold text-base text-slate-900 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  <span>Bibliografía & Referencias de Cátedra</span>
+                </h3>
+                <span className="text-xs text-slate-500">Normas APA 7ma / Clasificación Universitaria</span>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="font-bold text-sm text-slate-900">Unidad 2: Desarrollo y Análisis de Casos</div>
-                  <div className="text-xs text-slate-500">Resolución de problemas contextualizados a Colombia.</div>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">Nota: 4.8 (Aprobado)</span>
-              </div>
-
-              <div className="bg-white p-5 rounded-2xl border border-primary/30 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="font-bold text-sm text-slate-900">Unidad 3: Taller Integral & Proyecto Final (En Curso)</div>
-                  <div className="text-xs text-slate-600">Evaluación de competencias y entrega de resultados.</div>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-primary/15 text-primary font-bold text-xs">Avance 75%</span>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: QUIZ & EVALUATION */}
-          {activeTab === 'quiz' && (
-            <div className="max-w-2xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              {isMath ? (
-                <form onSubmit={handleMathQuizSubmit} className="space-y-4 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-primary bg-primary/10 px-2 py-0.5 rounded-md mb-2 inline-block">
-                      Evaluación de Matemáticas
-                    </span>
-                    <h3 className="font-display font-bold text-xl text-slate-900 mb-2">
-                      Cálculo de Magnitud Vectorial
-                    </h3>
-                    <p className="text-slate-600 leading-relaxed">
-                      Dado el vector <strong>v = ({vx}, {vy}, {vz})</strong>, calcula la magnitud escalar aplicando el teorema de Pitágoras espacial.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">
-                      Ingresa el valor de |v|:
-                    </label>
-                    <input 
-                      type="number"
-                      step="0.01"
-                      value={mathAnswer}
-                      onChange={(e) => setMathAnswer(e.target.value)}
-                      placeholder={`Ejemplo: ${vectorMagnitude}`}
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-primary font-bold text-sm"
-                      required
-                    />
-                  </div>
-
-                  {mathQuizResult && (
-                    <div className={`p-3.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${
-                      mathQuizResult.success ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-rose-50 text-rose-800 border-rose-300'
-                    }`}>
-                      {mathQuizResult.success ? <CheckCircle2 className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                      <span>{mathQuizResult.msg}</span>
-                    </div>
-                  )}
-
-                  <button 
-                    type="submit"
-                    className="w-full py-3 px-4 bg-primary text-white rounded-xl font-bold text-xs shadow hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+              <div className="space-y-3">
+                {resources.map((res, idx) => (
+                  <div 
+                    key={idx}
+                    className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                   >
-                    <Check className="w-4 h-4" />
-                    Validar Respuesta y Enviar al Docente
-                  </button>
-                </form>
-              ) : (
-                <div>
-                  {litSubmitted ? (
-                    <div className="p-6 text-center space-y-2">
-                      <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-                      <div className="font-bold text-base text-slate-900">¡Trabajo Académico Entregado con Éxito!</div>
-                      <div className="text-xs text-slate-500">
-                        Tu entrega ha sido enviada al docente para su revisión y calificación.
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-900 border border-blue-200">
+                          {res.type || 'Lectura Académica'}
+                        </span>
+                        {res.callNumber && (
+                          <span className="text-[10px] font-mono font-bold text-slate-500">
+                            {res.callNumber}
+                          </span>
+                        )}
                       </div>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleLitEssaySubmit} className="space-y-4 text-xs">
-                      <h3 className="font-display font-bold text-xl text-slate-900 mb-1">
-                        Taller de Análisis y Redacción
-                      </h3>
-                      <p className="text-slate-600 leading-relaxed mb-3">
-                        Redacta tu análisis sobre los elementos simbólicos vistos en el módulo interactivo.
+                      <h4 className="font-display font-bold text-sm text-slate-900">
+                        {res.title}
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Autor / Editor: {res.author || 'Departamento de Publicaciones'}
                       </p>
-                      <textarea
-                        rows="5"
-                        value={litEssayText}
-                        onChange={(e) => setLitEssayText(e.target.value)}
-                        placeholder="Escribe aquí tu análisis..."
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-primary text-slate-800 text-xs"
-                        required
-                      />
-                      <button 
-                        type="submit"
-                        className="w-full py-3 px-4 bg-primary text-white rounded-xl font-bold text-xs shadow hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Send className="w-4 h-4" />
-                        Enviar Entrega al Docente
-                      </button>
-                    </form>
-                  )}
-                </div>
-              )}
+                    </div>
+
+                    <button
+                      onClick={handleDownloadSyllabus}
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all self-start sm:self-auto"
+                      title="Consultar recurso digital"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Consultar</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
