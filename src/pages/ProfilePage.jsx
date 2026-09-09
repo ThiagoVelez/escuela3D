@@ -248,27 +248,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Session Security Card - Cerrar Sesión desde el perfil */}
-      <div className="mt-6 rounded-3xl p-5 sm:p-6 border border-rose-100 bg-rose-50/60 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-        <div>
-          <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-rose-600" />
-            Control de Sesión y Seguridad
-          </h4>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Puedes cerrar tu sesión de forma segura en este dispositivo en cualquier momento.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={logout}
-          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Cerrar Sesión Activa</span>
-        </button>
-      </div>
-
       {/* Edit Profile Modal */}
       <ProfileEditModal 
         isOpen={isEditOpen} 
