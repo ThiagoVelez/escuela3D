@@ -10,6 +10,7 @@ import {
   Users, 
   Check 
 } from 'lucide-react';
+import { cleanText } from '../utils/textSanitizer';
 
 export default function Navbar() {
   const { 
@@ -51,6 +52,8 @@ export default function Navbar() {
     ? user.avatarUrl 
     : defaultRoleAvatar;
 
+  const displayInstName = cleanText(institutionName || 'Institución Educativa');
+
   return (
     <nav className="fixed top-0 left-0 w-full z-40 flex items-center justify-between px-3 sm:px-4 md:px-8 bg-white/70 backdrop-blur-md border-b border-white/40 shadow-sm h-16 md:h-20">
         <div className="flex items-center gap-2 sm:gap-3">
@@ -70,14 +73,15 @@ export default function Navbar() {
           <div 
             onClick={() => setActiveTab(user?.rol === 'DOCENTE' ? 'teacher-panel' : (user?.rol === 'RECTOR' || user?.rol === 'ADMINISTRADOR') ? 'staff-management' : 'subjects')}
             className="flex items-center gap-2.5 cursor-pointer group"
-            title={institutionName || 'EduCol Campus Institucional'}
+            title={displayInstName}
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-primary flex items-center justify-center shadow-md group-hover:scale-105 transition-transform overflow-hidden border border-amber-200/80 p-0.5">
+            {/* Adaptive Crest Container: supports round, square, horizontal banner or vertical emblems */}
+            <div className="h-9 sm:h-11 min-w-[36px] max-w-[140px] sm:max-w-[210px] px-1 py-0.5 rounded-xl bg-white text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-all overflow-hidden border border-amber-200/80">
               {schoolCrest ? (
                 <img 
                   src={schoolCrest} 
                   alt="Escudo Institucional" 
-                  className="w-full h-full object-cover rounded-lg"
+                  className="max-h-full max-w-full w-auto h-auto object-contain rounded-lg transition-transform"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     const fallback = e.currentTarget.parentElement.querySelector('.fallback-crest-icon');
@@ -85,16 +89,16 @@ export default function Navbar() {
                   }}
                 />
               ) : null}
-              <div className={`fallback-crest-icon w-full h-full rounded-lg bg-primary text-white items-center justify-center ${schoolCrest ? 'hidden' : 'flex'}`}>
-                <GraduationCap className="w-5 h-5" />
+              <div className={`fallback-crest-icon w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary text-white items-center justify-center ${schoolCrest ? 'hidden' : 'flex'}`}>
+                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span className="font-display font-black text-lg sm:text-xl text-primary tracking-tight leading-none">
                 EduCol
               </span>
               <span className="text-[10px] font-semibold text-slate-500 truncate max-w-[120px] sm:max-w-[220px] leading-tight mt-0.5">
-                {institutionName || 'Institución Educativa'}
+                {displayInstName}
               </span>
             </div>
           </div>

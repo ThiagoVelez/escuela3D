@@ -1037,10 +1037,60 @@ let memorySubmissions = [
   }
 ];
 
+function cleanServerText(str) {
+  if (!str || typeof str !== 'string') return str || '';
+  return str
+    .replace(/Ã¡/g, 'á')
+    .replace(/Ã©/g, 'é')
+    .replace(/Ã­/g, 'í')
+    .replace(/Ã³/g, 'ó')
+    .replace(/Ãº/g, 'ú')
+    .replace(/Ã±/g, 'ñ')
+    .replace(/Ã /g, 'Á')
+    .replace(/Ã‰/g, 'É')
+    .replace(/Ã /g, 'Í')
+    .replace(/Ã“/g, 'Ó')
+    .replace(/Ãš/g, 'Ú')
+    .replace(/Ã‘/g, 'Ñ')
+    .replace(/Â°/g, '°')
+    .replace(/Biolog[\uFFFD\?]a/gi, 'Biología')
+    .replace(/BIOLOG[\uFFFD\?]A/g, 'BIOLOGÍA')
+    .replace(/G[\uFFFD\?]mez/gi, 'Gómez')
+    .replace(/R[\uFFFD\?]os/gi, 'Ríos')
+    .replace(/investigaci[\uFFFD\?]n/gi, 'investigación')
+    .replace(/Geometr[\uFFFD\?]a/gi, 'Geometría')
+    .replace(/Frailej[\uFFFD\?]n/gi, 'Frailejón')
+    .replace(/Ma[\uFFFD\?]ana/gi, 'Mañana')
+    .replace(/evaluaci[\uFFFD\?]n/gi, 'evaluación')
+    .replace(/calificaci[\uFFFD\?]n/gi, 'calificación')
+    .replace(/educaci[\uFFFD\?]n/gi, 'educación')
+    .replace(/inform[\uFFFD\?]tica/gi, 'informática')
+    .replace(/\b10[\uFFFD\?\s]*A\b/g, '10° A')
+    .replace(/\b10[\uFFFD\?\s]*B\b/g, '10° B')
+    .replace(/\b11[\uFFFD\?\s]*A\b/g, '11° A')
+    .replace(/\b11[\uFFFD\?\s]*B\b/g, '11° B')
+    .replace(/\uFFFD/g, '');
+}
+
+function sanitizeSubmission(s) {
+  if (!s) return s;
+  return {
+    ...s,
+    materiaNombre: cleanServerText(s.materiaNombre),
+    titulo: cleanServerText(s.titulo),
+    estudianteNombre: cleanServerText(s.estudianteNombre),
+    grado: cleanServerText(s.grado),
+    jornada: cleanServerText(s.jornada),
+    docenteNombre: cleanServerText(s.docenteNombre),
+    anotacionesDocente: cleanServerText(s.anotacionesDocente),
+    comentariosEstudiante: cleanServerText(s.comentariosEstudiante)
+  };
+}
+
 // Obtener entregas para el Correo de Tareas del profesor
 app.get('/api/submissions', (req, res) => {
   const { grado, materiaId, estado, estudianteId } = req.query;
-  let list = [...memorySubmissions];
+  let list = memorySubmissions.map(sanitizeSubmission);
 
   if (grado && grado !== 'Todos') {
     list = list.filter(s => s.grado === grado);
@@ -1079,14 +1129,14 @@ app.post('/api/submissions', (req, res) => {
     id: Date.now(),
     assignmentId: parseInt(assignmentId) || 1,
     materiaId: parseInt(materiaId) || 1,
-    materiaNombre: materiaNombre || 'Materia Académica',
-    titulo: titulo || 'Entrega de Tarea',
+    materiaNombre: cleanServerText(materiaNombre || 'Materia Académica'),
+    titulo: cleanServerText(titulo || 'Entrega de Tarea'),
     tipo: tipo || 'TALLER',
     estudianteId: parseInt(estudianteId) || 1,
-    estudianteNombre: estudianteNombre || 'Estudiante EduCol',
+    estudianteNombre: cleanServerText(estudianteNombre || 'Estudiante EduCol'),
     estudianteEmail: estudianteEmail || 'estudiante@educol.edu.co',
-    grado: grado || '10° A',
-    jornada: jornada || 'Mañana',
+    grado: cleanServerText(grado || '10° A'),
+    jornada: cleanServerText(jornada || 'Mañana'),
     fechaEntrega: new Date().toISOString(),
     archivo: archivo || {
       nombre: 'documento_entregado.pdf',
@@ -1094,7 +1144,7 @@ app.post('/api/submissions', (req, res) => {
       tipo: 'application/pdf',
       url: ''
     },
-    comentariosEstudiante: comentariosEstudiante || '',
+    comentariosEstudiante: cleanServerText(comentariosEstudiante || ''),
     estado: 'PENDIENTE',
     nota: null,
     anotacionesDocente: null,
@@ -1118,23 +1168,41 @@ app.put('/api/submissions/:id/grade', (req, res) => {
 
   const parsedNota = parseFloat(nota);
   submission.nota = !isNaN(parsedNota) ? parsedNota : 5.0;
-  submission.anotacionesDocente = anotacionesDocente || 'Revisado y aprobado.';
-  submission.docenteNombre = docenteNombre || 'Docente Evaluador';
+  submission.anotacionesDocente = cleanServerText(anotacionesDocente || 'Revisado y aprobado.');
+  submission.docenteNombre = cleanServerText(docenteNombre || 'Docente Evaluador');
   submission.fechaCalificacion = new Date().toISOString();
   submission.estado = 'CALIFICADO';
 
   res.json({
     success: true,
     message: 'Nota y observaciones enviadas exitosamente al estudiante',
-    submission
+    submission: sanitizeSubmission(submission)
   });
 });
 
 // Obtener entregas de un estudiante específico (para Trabajos Calificados)
 app.get('/api/submissions/student/:studentId', (req, res) => {
   const studentId = parseInt(req.params.studentId);
-  const list = memorySubmissions.filter(s => s.estudianteId === studentId);
+  const list = memorySubmissions.filter(s => s.estudianteId === studentId).map(sanitizeSubmission);
   res.json({ success: true, submissions: list });
+});
+
+// GESTIÓN INSTITUCIONAL DE PERSONAL (STAFF)
+let memoryStaff = [];
+
+app.post('/api/users/staff', (req, res) => {
+  const staffMember = {
+    id: Date.now(),
+    ...req.body,
+    nombre: cleanServerText(req.body.nombre || ''),
+    grado: cleanServerText(req.body.grado || '')
+  };
+  memoryStaff.push(staffMember);
+  res.json({ success: true, message: 'Miembro del personal registrado exitosamente', user: staffMember });
+});
+
+app.get('/api/users/staff', (req, res) => {
+  res.json({ success: true, staff: memoryStaff });
 });
 
 app.listen(PORT, () => {
@@ -1143,3 +1211,4 @@ app.listen(PORT, () => {
   console.log(`[API Base] Endpoint: http://localhost:${PORT}/api`);
   console.log(`=======================================================`);
 });
+

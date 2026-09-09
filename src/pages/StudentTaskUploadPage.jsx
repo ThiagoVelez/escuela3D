@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { submitHomework } from '../services/api';
+import { cleanText } from '../utils/textSanitizer';
 import { 
   UploadCloud, 
   FileText, 
@@ -67,6 +68,16 @@ export default function StudentTaskUploadPage() {
     
     setTimeout(() => setUploadProgress(45), 250);
     setTimeout(() => setUploadProgress(85), 550);
+    let dataUrl = '';
+    if (file.size < 20 * 1024 * 1024) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        dataUrl = ev.target?.result || '';
+        setFileData(prev => prev ? ({ ...prev, dataUrl }) : prev);
+      };
+      reader.readAsDataURL(file);
+    }
+
     setTimeout(() => {
       setUploadProgress(100);
       setIsUploading(false);
@@ -74,7 +85,8 @@ export default function StudentTaskUploadPage() {
         nombre: file.name,
         tamanoMb: parseFloat(sizeMb),
         tipo: file.type || 'application/octet-stream',
-        sizeFormatted: `${sizeMb} MB`
+        sizeFormatted: `${sizeMb} MB`,
+        dataUrl: dataUrl
       });
     }, 850);
   };
@@ -109,19 +121,20 @@ export default function StudentTaskUploadPage() {
     const payload = {
       assignmentId: Date.now(),
       materiaId: parseInt(materiaId),
-      materiaNombre: selectedMat.nombre,
-      titulo: titulo.trim() || `Entrega de ${tipo} - ${selectedMat.nombre}`,
+      materiaNombre: cleanText(selectedMat.nombre),
+      titulo: cleanText(titulo.trim() || `Entrega de ${tipo} - ${selectedMat.nombre}`),
       tipo,
       estudianteId: user?.id || 1,
-      estudianteNombre: user?.nombre || 'Mateo Gómez',
+      estudianteNombre: cleanText(user?.nombre || 'Mateo Gómez'),
       estudianteEmail: user?.email || 'estudiante@educol.edu.co',
-      grado: user?.grado || '10° A',
-      jornada: user?.jornada || 'Mañana',
-      comentariosEstudiante: comentarios.trim(),
+      grado: cleanText(user?.grado || '10° A'),
+      jornada: cleanText(user?.jornada || 'Mañana'),
+      comentariosEstudiante: cleanText(comentarios.trim()),
       archivo: {
         nombre: fileData.nombre,
         tamanoMb: fileData.tamanoMb,
         tipo: fileData.tipo,
+        dataUrl: fileData.dataUrl || '',
         url: ''
       }
     };

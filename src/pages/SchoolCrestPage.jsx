@@ -13,27 +13,38 @@ import {
   AlertCircle,
   GraduationCap
 } from 'lucide-react';
+import { cleanText } from '../utils/textSanitizer';
 
 const PRESET_CRESTS = [
   {
     id: 'preset-1',
-    name: 'Blasón Clásico Dorado',
-    url: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&auto=format&fit=crop&q=80'
+    name: 'Blasón Circular Dorado',
+    format: 'Circular (1:1)',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="%23fef3c7" stroke="%23b45309" stroke-width="4"/><circle cx="50" cy="50" r="38" fill="%23ffffff" stroke="%23d97706" stroke-width="2"/><path d="M50 20 L58 36 L76 36 L62 48 L67 66 L50 55 L33 66 L38 48 L24 36 L42 36 Z" fill="%23d97706"/><text x="50" y="82" font-size="8.5" font-family="sans-serif" font-weight="900" fill="%2378350f" text-anchor="middle">EXCELENCIA</text></svg>'
   },
   {
     id: 'preset-2',
-    name: 'Insignia Academia Andina',
-    url: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=300&auto=format&fit=crop&q=80'
+    name: 'Insignia Horizontal Banner (ECN)',
+    format: 'Horizontal (Banner)',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 80"><rect width="220" height="80" rx="14" fill="%23ffffff" stroke="%230284c7" stroke-width="3"/><path d="M14 40 Q50 16 110 40 T206 40" stroke="%2338bdf8" stroke-width="4" fill="none"/><text x="110" y="48" font-size="28" font-family="sans-serif" font-weight="900" fill="%230369a1" text-anchor="middle" letter-spacing="3">ECN</text><text x="110" y="68" font-size="8.5" font-family="sans-serif" font-weight="bold" fill="%230284c7" text-anchor="middle">COLEGIO NACIONAL</text></svg>'
   },
   {
     id: 'preset-3',
-    name: 'Emblema Científico & Tecnológico',
-    url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=300&auto=format&fit=crop&q=80'
+    name: 'Escudo Heráldico Real',
+    format: 'Vertical Tradicional',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120"><path d="M10 10 H90 V70 Q90 110 50 120 Q10 110 10 70 Z" fill="%230f172a" stroke="%23f59e0b" stroke-width="4"/><path d="M16 16 H84 V68 Q84 104 50 113 Q16 104 16 68 Z" fill="%231e3a8a"/><path d="M50 16 V113 M16 60 H84" stroke="%23fcd34d" stroke-width="3"/><circle cx="50" cy="38" r="13" fill="%23f59e0b"/><polygon points="50,72 56,84 70,84 59,92 63,105 50,96 37,105 41,92 30,84 44,84" fill="%23ffffff"/></svg>'
   },
   {
     id: 'preset-4',
-    name: 'Escudo Humanista Real',
-    url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=300&auto=format&fit=crop&q=80'
+    name: 'Emblema Científico & 3D',
+    format: 'Hexagonal Moderno',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="%23064e3b" stroke="%2310b981" stroke-width="4"/><circle cx="50" cy="50" r="22" fill="%23047857" stroke="%236ee7b7" stroke-width="2"/><text x="50" y="56" font-size="14" font-weight="900" font-family="sans-serif" fill="%23ecfdf5" text-anchor="middle">3D</text></svg>'
+  },
+  {
+    id: 'preset-5',
+    name: 'Academia Andina Institucional',
+    format: 'Emblema Universitario',
+    url: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=300&auto=format&fit=crop&q=80'
   }
 ];
 
@@ -187,32 +198,50 @@ export default function SchoolCrestPage() {
 
             {/* Presets Gallery */}
             <div className="pt-4 border-t border-slate-100">
-              <span className="block text-xs font-bold text-slate-700 uppercase mb-3">
-                Escudos & Emblemas Preconfigurados
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="flex items-center justify-between mb-3">
+                <span className="block text-xs font-bold text-slate-700 uppercase">
+                  Escudos & Emblemas Preconfigurados
+                </span>
+                <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                  Formatos Diversos (Circular, Horizontal, Heráldico)
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {PRESET_CRESTS.map((preset) => {
                   const isSelected = selectedCrest === preset.url;
                   return (
                     <div
                       key={preset.id}
                       onClick={() => setSelectedCrest(preset.url)}
-                      className={`p-2.5 rounded-xl border cursor-pointer transition-all text-center flex flex-col items-center ${
+                      className={`p-2.5 rounded-xl border cursor-pointer transition-all text-center flex flex-col items-center justify-between ${
                         isSelected 
                           ? 'border-primary bg-amber-50/60 shadow-sm ring-2 ring-primary/40' 
                           : 'border-slate-200 bg-white hover:border-slate-300'
                       }`}
                     >
-                      <div className="w-14 h-14 rounded-lg overflow-hidden mb-2 bg-slate-100 flex items-center justify-center p-1 border border-slate-100">
+                      <div className="h-14 w-full rounded-lg overflow-hidden mb-2 bg-slate-50 flex items-center justify-center p-1 border border-slate-100">
                         <img 
                           src={preset.url} 
                           alt={preset.name} 
-                          className="w-full h-full object-cover rounded-md" 
+                          className="max-h-full max-w-full w-auto h-auto object-contain rounded"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.parentElement.querySelector('.fallback-preset-icon');
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
                         />
+                        <div className="fallback-preset-icon hidden items-center justify-center text-slate-400 text-[10px] font-bold">
+                          Insignia
+                        </div>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-700 leading-tight">
-                        {preset.name}
-                      </span>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-800 leading-tight block">
+                          {preset.name}
+                        </span>
+                        <span className="text-[9px] text-slate-500 block mt-0.5">
+                          {preset.format}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
@@ -274,56 +303,68 @@ export default function SchoolCrestPage() {
         {/* Right Column: Live Previews (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
 
-          {/* Active Crest Badge */}
+          {/* Active Crest Badge: Fully Adaptive */}
           <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-sm text-center">
-            <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 tracking-wider inline-block mb-4">
-              Vista Previa del Escudo Seleccionado
+            <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 tracking-wider inline-block mb-3">
+              Vista Previa Adaptativa del Escudo
             </span>
 
-            <div className="w-32 h-32 mx-auto rounded-2xl overflow-hidden p-2 bg-white border-2 border-amber-300/80 shadow-lg mb-4 flex items-center justify-center">
+            {/* Adaptive container: expands naturally for horizontal badges or centers round/vertical crests */}
+            <div className="min-h-[140px] max-h-[190px] w-full max-w-sm mx-auto rounded-2xl overflow-hidden p-3 bg-white/90 border-2 border-amber-300/80 shadow-md mb-4 flex items-center justify-center">
               <img 
                 src={selectedCrest} 
                 alt="Escudo Oficial del Colegio" 
-                className="w-full h-full object-cover rounded-xl" 
+                className="max-h-[160px] max-w-full w-auto h-auto object-contain rounded-xl drop-shadow-sm transition-all"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.parentElement.querySelector('.fallback-crest-preview');
+                  if (fallback) fallback.style.display = 'flex';
+                }}
               />
+              <div className="fallback-crest-preview hidden flex-col items-center justify-center text-slate-400 p-4">
+                <GraduationCap className="w-12 h-12 text-slate-300 mb-1" />
+                <span className="text-xs font-semibold">Imagen no disponible</span>
+              </div>
             </div>
 
             <h4 className="font-display font-black text-lg text-slate-900 leading-tight">
-              {instName}
+              {cleanText(instName)}
             </h4>
             <p className="text-xs text-slate-500 italic mt-1">
-              "{motto}"
+              "{cleanText(motto)}"
             </p>
           </div>
 
-          {/* Mockup 1: Navbar Top Bar Preview */}
+          {/* Mockup 1: Navbar Top Bar Preview (Adaptive) */}
           <div className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-3">
             <span className="text-xs font-bold text-slate-700 block flex items-center gap-1.5">
               <Eye className="w-3.5 h-3.5 text-primary" />
               <span>Simulación en Barra Superior (Todos los Perfiles)</span>
             </span>
 
-            {/* Miniature Mock Navbar */}
-            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white border border-amber-200 overflow-hidden shadow-xs flex items-center justify-center p-0.5">
-                  <img src={selectedCrest} alt="Mini Escudo" className="w-full h-full object-cover rounded" />
+            {/* Miniature Mock Navbar with adaptive crest container */}
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="h-9 min-w-[36px] max-w-[140px] px-1 py-0.5 rounded-lg bg-white border border-amber-200 overflow-hidden shadow-xs flex items-center justify-center">
+                  <img src={selectedCrest} alt="Mini Escudo" className="max-h-full max-w-full w-auto h-auto object-contain rounded" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="font-bold text-xs text-primary block leading-none">EduCol</span>
-                  <span className="text-[9px] text-slate-500 truncate max-w-[130px] block leading-tight">{instName}</span>
+                  <span className="text-[9px] text-slate-500 truncate max-w-[130px] block leading-tight mt-0.5">
+                    {cleanText(instName)}
+                  </span>
                 </div>
               </div>
-              <span className="text-[9px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+              <span className="text-[9px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md shrink-0">
                 En Línea
               </span>
             </div>
             <p className="text-[11px] text-slate-500 leading-snug">
-              Este logo sustituye el icono genérico y aparece para profesores, estudiantes y coordinadores.
+              El espacio del escudo se adapta automáticamente sin deformar ni recortar logos horizontales o redondos.
             </p>
           </div>
 
-          {/* Mockup 2: Official Certificate Header Preview */}
+          {/* Mockup 2: Official Certificate Header Preview (Adaptive) */}
           <div className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-3">
             <span className="text-xs font-bold text-slate-700 block flex items-center gap-1.5">
               <Award className="w-3.5 h-3.5 text-primary" />
@@ -331,14 +372,14 @@ export default function SchoolCrestPage() {
             </span>
 
             <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs text-center space-y-2">
-              <div className="w-12 h-12 mx-auto rounded-lg overflow-hidden border border-slate-200 p-0.5">
-                <img src={selectedCrest} alt="Doc Escudo" className="w-full h-full object-cover rounded" />
+              <div className="h-14 min-w-[48px] max-w-[170px] mx-auto rounded-lg overflow-hidden border border-slate-200 p-1 flex items-center justify-center bg-slate-50/50">
+                <img src={selectedCrest} alt="Doc Escudo" className="max-h-full max-w-full w-auto h-auto object-contain rounded" />
               </div>
               <div className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">
                 República de Colombia • Ministerio de Educación Nacional
               </div>
               <div className="text-[10px] text-slate-600 font-semibold">
-                {instName}
+                {cleanText(instName)}
               </div>
               <div className="text-[9px] text-slate-400">
                 Boletín Oficial de Calificaciones & Registro Académico

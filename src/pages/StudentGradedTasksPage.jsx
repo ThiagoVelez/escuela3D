@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchStudentSubmissions } from '../services/api';
+import { cleanText } from '../utils/textSanitizer';
+import { downloadSubmissionFile } from '../utils/fileDownloader';
 import { 
   Award, 
   CheckCircle2, 
@@ -169,7 +171,7 @@ export default function StudentGradedTasksPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 tracking-wider">
-                        {item.materiaNombre}
+                        {cleanText(item.materiaNombre)}
                       </span>
                       <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${perf.bg}`}>
                         {perf.label}
@@ -177,13 +179,13 @@ export default function StudentGradedTasksPage() {
                     </div>
 
                     <h3 className="font-display font-black text-lg sm:text-xl text-slate-900 leading-tight">
-                      {item.titulo}
+                      {cleanText(item.titulo)}
                     </h3>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
                       <span className="flex items-center gap-1 font-semibold text-slate-700">
                         <UserCheck className="w-3.5 h-3.5 text-primary" />
-                        <span>Calificado por: {item.docenteNombre || 'Docente de Área'}</span>
+                        <span>Calificado por: {cleanText(item.docenteNombre || 'Docente de Área')}</span>
                       </span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
@@ -214,7 +216,7 @@ export default function StudentGradedTasksPage() {
                     </h5>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium pl-6">
-                    {item.anotacionesDocente || 'El docente no añadió observaciones adicionales para esta entrega.'}
+                    {cleanText(item.anotacionesDocente || 'El docente no añadió observaciones adicionales para esta entrega.')}
                   </p>
                 </div>
 
@@ -226,17 +228,15 @@ export default function StudentGradedTasksPage() {
                       <span>Archivo entregado: <strong className="text-slate-800">{item.archivo.nombre}</strong> ({item.archivo.tamanoMb} MB)</span>
                     </div>
 
-                    <a
-                      href={`#descargar-${item.archivo.nombre}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert(`Descargando copia de tu entrega: ${item.archivo.nombre}`);
-                      }}
-                      className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 font-bold hover:underline"
+                    <button
+                      type="button"
+                      onClick={() => downloadSubmissionFile(item.archivo, item)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-primary border border-amber-200 font-bold transition-all shadow-2xs hover:scale-102"
+                      title="Descargar una copia auténtica del archivo entregado"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5 text-primary" />
                       <span>Descargar mi entrega</span>
-                    </a>
+                    </button>
                   </div>
                 )}
 
