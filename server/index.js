@@ -9,7 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 // Health Check
 app.get('/api/health', async (req, res) => {
@@ -608,6 +609,532 @@ app.post('/api/assignments/submit', (req, res) => {
     item.estadoEstudiante = 'Entregado';
   }
   res.json({ success: true, message: 'Trabajo/Taller entregado exitosamente al docente' });
+});
+
+// =============================================================================
+// INSTITUTIONAL CREST (ESCUDO DEL COLEGIO)
+// =============================================================================
+let institutionalSettings = {
+  crestUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&auto=format&fit=crop&q=80',
+  institutionName: 'Institución Educativa Colombian Future',
+  motto: 'Ciencia, Innovación & Excelencia Inmersiva',
+  rectorName: 'Carlos Administrador',
+  updatedAt: new Date().toISOString()
+};
+
+app.get('/api/institutional/crest', (req, res) => {
+  res.json({ success: true, ...institutionalSettings });
+});
+
+app.post('/api/institutional/crest', (req, res) => {
+  const { crestUrl, institutionName, motto } = req.body;
+  if (crestUrl) institutionalSettings.crestUrl = crestUrl;
+  if (institutionName) institutionalSettings.institutionName = institutionName;
+  if (motto) institutionalSettings.motto = motto;
+  institutionalSettings.updatedAt = new Date().toISOString();
+
+  res.json({ success: true, message: 'Escudo institucional actualizado con éxito', settings: institutionalSettings });
+});
+
+// =============================================================================
+// MANUAL DE CONVIVENCIA Y REGLAS DEL COLEGIO
+// =============================================================================
+let institutionalHandbook = {
+  titulo: 'Manual de Convivencia y Normativa Institucional',
+  institucion: 'Institución Educativa Colombian Future',
+  codigoSnies: 'SNIES-994821',
+  vigencia: 'Periodo Lectivo 2026 - 2027',
+  ultimaActualizacion: '2026-09-01',
+  aprobadoPor: 'Consejo Directivo y Rectoría General',
+  capitulos: [
+    {
+      id: 1,
+      numero: 'Capítulo I',
+      titulo: 'Principios Fundamentales, Misión y Visión',
+      descripcion: 'Bases filosóficas y formativas de la institución educativa orientadas a la excelencia académica y ciudadana.',
+      articulos: [
+        {
+          id: 101,
+          numero: 'Artículo 1',
+          titulo: 'Misión Institucional',
+          contenido: 'Formar líderes con pensamiento crítico, ético e innovador mediante el uso responsable de la ciencia, la tecnología inmersiva y el respeto por los derechos humanos.'
+        },
+        {
+          id: 102,
+          numero: 'Artículo 2',
+          titulo: 'Filosofía del Respeto y Convivencia Pacífica',
+          contenido: 'Toda interacción dentro y fuera de las instalaciones físicas o entornos virtuales del colegio debe fundamentarse en la dignidad humana, la empatía y la resolución pacífica de diferencias.'
+        }
+      ]
+    },
+    {
+      id: 2,
+      numero: 'Capítulo II',
+      titulo: 'Derechos de los Estudiantes y la Comunidad Educativa',
+      descripcion: 'Garantías esenciales para el pleno desarrollo de la personalidad y el aprendizaje integral.',
+      articulos: [
+        {
+          id: 201,
+          numero: 'Artículo 3',
+          titulo: 'Derecho a una Educación Equitativa y de Calidad',
+          contenido: 'Recibir formación académica integral con metodologías pedagógicas modernas, retroalimentación justa y acceso a laboratorios y herramientas virtuales sin ningún tipo de discriminación.'
+        },
+        {
+          id: 202,
+          numero: 'Artículo 4',
+          titulo: 'Derecho al Debido Proceso Académico y Disciplinario',
+          contenido: 'Conocer oportunamente las evaluaciones, criterios de calificación y contar con derecho a réplica y mediación pedagógica en toda situación correctiva.'
+        }
+      ]
+    },
+    {
+      id: 3,
+      numero: 'Capítulo III',
+      titulo: 'Deberes y Compromisos del Estudiante',
+      descripcion: 'Obligaciones formativas y éticas para salvaguardar el orden y la armonía escolar.',
+      articulos: [
+        {
+          id: 301,
+          numero: 'Artículo 5',
+          titulo: 'Puntualidad y Asistencia a Clases',
+          contenido: 'Presentarse con puntualidad a las jornadas presenciales y sesiones académicas programadas portando el uniforme oficial en óptimo estado de pulcritud.'
+        },
+        {
+          id: 302,
+          numero: 'Artículo 6',
+          titulo: 'Cumplimiento Oportuno de Tareas y Talleres',
+          contenido: 'Elaborar y presentar las asignaciones académicas con rigor, originalidad y dentro de los plazos estipulados por los docentes en el campus virtual.'
+        }
+      ]
+    },
+    {
+      id: 4,
+      numero: 'Capítulo IV',
+      titulo: 'Clasificación de Faltas y Procedimientos Pedagógicos',
+      descripcion: 'Tipificación de comportamientos y acciones formativas restaurativas.',
+      articulos: [
+        {
+          id: 401,
+          numero: 'Artículo 7',
+          titulo: 'Faltas Leves',
+          contenido: 'Interrupción recurrente de clases, porte inadecuado de implementos escolares o uso de dispositivos móviles sin autorización pedagógica del docente.'
+        },
+        {
+          id: 402,
+          numero: 'Artículo 8',
+          titulo: 'Faltas Graves y Gravísimas',
+          contenido: 'Cualquier conducta que vulnere la integridad física o psicológica de miembros de la comunidad (ciberacoso, intimidación, plagio deliberado o daño intencional a bienes institucionales).'
+        }
+      ]
+    },
+    {
+      id: 5,
+      numero: 'Capítulo V',
+      titulo: 'Uso de Entornos Digitales y Campus Virtual',
+      descripcion: 'Normas de ciudadanía digital, seguridad informática y convivencia en línea.',
+      articulos: [
+        {
+          id: 501,
+          numero: 'Artículo 9',
+          titulo: 'Custodia de Credenciales Institucionales',
+          contenido: 'El acceso al campus y correo institucional es personal e intransferible. Está prohibido suplantar identidades o compartir contraseñas de acceso.'
+        },
+        {
+          id: 502,
+          numero: 'Artículo 10',
+          titulo: 'Netiqueta y Comunicación Asertiva',
+          contenido: 'Toda comunicación en foros, buzones de entrega y chats del colegio debe mantener un tono respetuoso, constructivo y formal.'
+        }
+      ]
+    }
+  ]
+};
+
+app.get('/api/institutional/handbook', (req, res) => {
+  res.json({ success: true, handbook: institutionalHandbook });
+});
+
+app.post('/api/institutional/handbook', (req, res) => {
+  const { capitulos, titulo, vigencia, aprobadoPor } = req.body;
+  if (capitulos && Array.isArray(capitulos)) institutionalHandbook.capitulos = capitulos;
+  if (titulo) institutionalHandbook.titulo = titulo;
+  if (vigencia) institutionalHandbook.vigencia = vigencia;
+  if (aprobadoPor) institutionalHandbook.aprobadoPor = aprobadoPor;
+  institutionalHandbook.ultimaActualizacion = new Date().toISOString().split('T')[0];
+
+  res.json({ success: true, message: 'Manual de convivencia actualizado exitosamente', handbook: institutionalHandbook });
+});
+
+// =============================================================================
+// JERARQUÍA INSTITUCIONAL INTERACTIVA
+// =============================================================================
+const institutionalHierarchyData = {
+  id: 'node-rector',
+  nombre: 'Carlos Administrador',
+  cargo: 'Rector General & Director Institucional',
+  area: 'Dirección General',
+  email: 'admin@educol.edu.co',
+  telefono: '+57 (1) 745-8900 Ext. 101',
+  horarioAtencion: 'Lunes a Viernes 07:30 - 12:30',
+  foto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80',
+  estado: 'Activo en Sede Central',
+  descripcion: 'Dirección integral, planeación estratégica y articulación pedagógica institucional.',
+  hijos: [
+    {
+      id: 'node-coord-acad',
+      nombre: 'Lic. Andrés Maldonado',
+      cargo: 'Coordinador Académico',
+      area: 'Coordinación Pedagógica',
+      email: 'academica@educol.edu.co',
+      telefono: '+57 (1) 745-8900 Ext. 104',
+      horarioAtencion: 'Lunes a Viernes 08:00 - 14:00',
+      foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+      estado: 'Activo',
+      descripcion: 'Supervisión del plan curricular, mallas pedagógicas y seguimiento de rendimientos académicos.',
+      hijos: [
+        {
+          id: 'node-prof-valentina',
+          nombre: 'Dra. Valentina Ríos',
+          cargo: 'Docente Titular de Ciencias Naturales & Biología',
+          area: 'Departamento de Ciencias Naturales',
+          email: 'docente@educol.edu.co',
+          telefono: '+57 (1) 745-8900 Ext. 201',
+          horarioAtencion: 'Miércoles y Jueves 14:00 - 16:00',
+          foto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
+          estado: 'Activo',
+          descripcion: 'Cátedra de Biología 3D, investigación de biodiversidad andina y laboratorios celulares.',
+          salones: [
+            { grado: '10° A', materia: 'Biología 3D', estudiantes: 34, aula: 'Laboratorio de Ciencias 1' },
+            { grado: '10° B', materia: 'Biología 3D', estudiantes: 32, aula: 'Aula 204' },
+            { grado: '11° A', materia: 'Ecología Aplicada', estudiantes: 29, aula: 'Laboratorio de Ciencias 1' }
+          ]
+        },
+        {
+          id: 'node-prof-alejandro',
+          nombre: 'Ing. Alejandro Torres',
+          cargo: 'Docente de Matemáticas, Cálculo & Geometría 3D',
+          area: 'Departamento de Matemáticas',
+          email: 'alejandro.torres@educol.edu.co',
+          telefono: '+57 (1) 745-8900 Ext. 202',
+          horarioAtencion: 'Martes y Viernes 10:30 - 12:30',
+          foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+          estado: 'Activo',
+          descripcion: 'Cálculo diferencial, trigonometría espacial y modelos geométricos 3D.',
+          salones: [
+            { grado: '10° A', materia: 'Matemáticas 3D', estudiantes: 34, aula: 'Aula 201' },
+            { grado: '10° B', materia: 'Matemáticas 3D', estudiantes: 32, aula: 'Aula 202' },
+            { grado: '11° B', materia: 'Cálculo Avanzado', estudiantes: 28, aula: 'Aula 301' }
+          ]
+        },
+        {
+          id: 'node-prof-gabriel',
+          nombre: 'Prof. Gabriel Mendoza',
+          cargo: 'Docente de Humanidades & Literatura Colombiana',
+          area: 'Departamento de Humanidades',
+          email: 'gabriel.mendoza@educol.edu.co',
+          telefono: '+57 (1) 745-8900 Ext. 203',
+          horarioAtencion: 'Lunes y Jueves 09:00 - 11:00',
+          foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80',
+          estado: 'Activo',
+          descripcion: 'Cátedra de literatura hispanoamericana, narrativa contemporánea y análisis crítico.',
+          salones: [
+            { grado: '10° A', materia: 'Literatura Colombiana', estudiantes: 34, aula: 'Biblioteca Central' },
+            { grado: '11° A', materia: 'Filosofía & Lengua', estudiantes: 29, aula: 'Aula 205' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'node-coord-conviv',
+      nombre: 'Dra. Helena Sarmiento',
+      cargo: 'Coordinadora de Convivencia Escolar',
+      area: 'Bienestar & Convivencia',
+      email: 'convivencia@educol.edu.co',
+      telefono: '+57 (1) 745-8900 Ext. 105',
+      horarioAtencion: 'Lunes a Viernes 07:00 - 13:00',
+      foto: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+      estado: 'Activo',
+      descripcion: 'Gestión de comités de convivencia, mediación estudiantil y acompañamiento a familias.',
+      hijos: [
+        {
+          id: 'node-prof-carlos',
+          nombre: 'Lic. Carlos López',
+          cargo: 'Docente de Educación Física & Convivencia',
+          area: 'Educación Física y Deportes',
+          email: 'carlos.lopez@educol.edu.co',
+          telefono: '+57 (1) 745-8900 Ext. 204',
+          horarioAtencion: 'Martes 08:00 - 10:00',
+          foto: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80',
+          estado: 'Activo',
+          descripcion: 'Dirección de grupo de 10° B, formación deportiva y hábitos saludables.',
+          salones: [
+            { grado: '10° B', materia: 'Educación Física', estudiantes: 32, aula: 'Canchas Polideportivas' },
+            { grado: '11° B', materia: 'Educación Física', estudiantes: 28, aula: 'Canchas Polideportivas' }
+          ]
+        },
+        {
+          id: 'node-prof-maria',
+          nombre: 'Dra. María Victoria Gómez',
+          cargo: 'Docente de Química & Laboratorios Experimentales',
+          area: 'Departamento de Ciencias',
+          email: 'maria.gomez@educol.edu.co',
+          telefono: '+57 (1) 745-8900 Ext. 205',
+          horarioAtencion: 'Jueves 10:00 - 12:00',
+          foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+          estado: 'Activo',
+          descripcion: 'Química orgánica, estequiometría y seguridad en laboratorios.',
+          salones: [
+            { grado: '10° A', materia: 'Química 3D', estudiantes: 34, aula: 'Laboratorio de Química 2' },
+            { grado: '11° A', materia: 'Química Orgánica', estudiantes: 29, aula: 'Laboratorio de Química 2' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'node-coord-tic',
+      nombre: 'Ing. David Beltrán',
+      cargo: 'Coordinador de Tecnología, Informática & Campus Virtual',
+      area: 'Dirección TIC',
+      email: 'tic@educol.edu.co',
+      telefono: '+57 (1) 745-8900 Ext. 108',
+      horarioAtencion: 'Lunes a Viernes 08:00 - 16:00',
+      foto: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
+      estado: 'Activo',
+      descripcion: 'Infraestructura tecnológica, servidores del campus y soporte de conectividad.',
+      hijos: [
+        {
+          id: 'node-prof-luis',
+          nombre: 'Ing. Luis Fernando Ruiz',
+          cargo: 'Docente de Informática & Robótica Educativa',
+          area: 'Departamento de Tecnología',
+          email: 'luis.ruiz@educol.edu.co',
+          telefono: '+57 (1) 745-8900 Ext. 206',
+          horarioAtencion: 'Lunes 14:00 - 16:00',
+          foto: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80',
+          estado: 'Activo',
+          descripcion: 'Algoritmia, robótica Arduino y diseño digital.',
+          salones: [
+            { grado: '10° A', materia: 'Informática 3D', estudiantes: 34, aula: 'Sala de Sistemas 1' },
+            { grado: '10° B', materia: 'Informática 3D', estudiantes: 32, aula: 'Sala de Sistemas 2' }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+app.get('/api/institutional/hierarchy', (req, res) => {
+  res.json({ success: true, hierarchy: institutionalHierarchyData });
+});
+
+// =============================================================================
+// GESTIÓN COMPLETA DE ENTREGAS, CORREO DE TAREAS Y CALIFICACIONES
+// =============================================================================
+let memorySubmissions = [
+  {
+    id: 1,
+    assignmentId: 1,
+    materiaId: 2,
+    materiaNombre: 'Biología 3D',
+    titulo: 'Informe de Laboratorio: Células del Frailejón Andino',
+    tipo: 'TALLER',
+    estudianteId: 1,
+    estudianteNombre: 'Mateo Gómez',
+    estudianteEmail: 'estudiante@educol.edu.co',
+    grado: '10° A',
+    jornada: 'Mañana',
+    fechaEntrega: '2026-09-08T14:30:00.000Z',
+    archivo: {
+      nombre: 'Informe_Frailejon_MateoGomez.pdf',
+      tamanoMb: 14.5,
+      tipo: 'application/pdf',
+      url: ''
+    },
+    comentariosEstudiante: 'Adjunto el informe de investigación con las capturas microscópicas del tejido celular y análisis de vacuolas.',
+    estado: 'CALIFICADO',
+    nota: 5.0,
+    anotacionesDocente: 'Excelente trabajo de análisis. Se evidencia rigurosidad metodológica y una clara interpretación de las adaptaciones climáticas del frailejón. Continúa con ese nivel de detalle.',
+    docenteNombre: 'Dra. Valentina Ríos',
+    fechaCalificacion: '2026-09-08T17:45:00.000Z'
+  },
+  {
+    id: 2,
+    assignmentId: 2,
+    materiaId: 1,
+    materiaNombre: 'Matemáticas 3D',
+    titulo: 'Taller de Vectores y Geometría en R3',
+    tipo: 'TALLER',
+    estudianteId: 1,
+    estudianteNombre: 'Mateo Gómez',
+    estudianteEmail: 'estudiante@educol.edu.co',
+    grado: '10° A',
+    jornada: 'Mañana',
+    fechaEntrega: '2026-09-09T08:15:00.000Z',
+    archivo: {
+      nombre: 'Calculo_Vectores_3D_Mateo.xlsx',
+      tamanoMb: 8.2,
+      tipo: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      url: ''
+    },
+    comentariosEstudiante: 'Entrego el archivo Excel con las matrices de proyección y los cálculos del producto cruz solicitados en la guía.',
+    estado: 'PENDIENTE',
+    nota: null,
+    anotacionesDocente: null,
+    docenteNombre: null,
+    fechaCalificacion: null
+  },
+  {
+    id: 3,
+    assignmentId: 3,
+    materiaId: 3,
+    materiaNombre: 'Literatura Colombiana',
+    titulo: 'Ensayo Crítico sobre Cien Años de Soledad',
+    tipo: 'ENSAYO',
+    estudianteId: 104,
+    estudianteNombre: 'Camila Morales',
+    estudianteEmail: 'camila.morales@educol.edu.co',
+    grado: '10° A',
+    jornada: 'Mañana',
+    fechaEntrega: '2026-09-09T09:20:00.000Z',
+    archivo: {
+      nombre: 'Ensayo_Macondo_CamilaMorales.docx',
+      tamanoMb: 4.1,
+      tipo: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      url: ''
+    },
+    comentariosEstudiante: 'Profesor, envío mi ensayo sobre el simbolismo de los peces de oro y la soledad del coronel Aureliano Buendía.',
+    estado: 'PENDIENTE',
+    nota: null,
+    anotacionesDocente: null,
+    docenteNombre: null,
+    fechaCalificacion: null
+  },
+  {
+    id: 4,
+    assignmentId: 1,
+    materiaId: 2,
+    materiaNombre: 'Biología 3D',
+    titulo: 'Investigación Flora Andina y Cloroplastos',
+    tipo: 'PROYECTO',
+    estudianteId: 105,
+    estudianteNombre: 'Santiago Ospina',
+    estudianteEmail: 'santiago.ospina@educol.edu.co',
+    grado: '10° B',
+    jornada: 'Tarde',
+    fechaEntrega: '2026-09-09T09:40:00.000Z',
+    archivo: {
+      nombre: 'Proyecto_Biologia_Ospina.pdf',
+      tamanoMb: 28.6,
+      tipo: 'application/pdf',
+      url: ''
+    },
+    comentariosEstudiante: 'Comparto el documento en PDF con diagramas de células de páramo y datos experimentales.',
+    estado: 'PENDIENTE',
+    nota: null,
+    anotacionesDocente: null,
+    docenteNombre: null,
+    fechaCalificacion: null
+  }
+];
+
+// Obtener entregas para el Correo de Tareas del profesor
+app.get('/api/submissions', (req, res) => {
+  const { grado, materiaId, estado, estudianteId } = req.query;
+  let list = [...memorySubmissions];
+
+  if (grado && grado !== 'Todos') {
+    list = list.filter(s => s.grado === grado);
+  }
+  if (materiaId && materiaId !== 'Todas') {
+    list = list.filter(s => String(s.materiaId) === String(materiaId));
+  }
+  if (estado && estado !== 'TODOS') {
+    list = list.filter(s => s.estado === estado);
+  }
+  if (estudianteId) {
+    list = list.filter(s => String(s.estudianteId) === String(estudianteId));
+  }
+
+  res.json({ success: true, submissions: list });
+});
+
+// Estudiante sube una tarea (hasta 500 MB)
+app.post('/api/submissions', (req, res) => {
+  const {
+    assignmentId,
+    materiaId,
+    materiaNombre,
+    titulo,
+    tipo,
+    estudianteId,
+    estudianteNombre,
+    estudianteEmail,
+    grado,
+    jornada,
+    comentariosEstudiante,
+    archivo
+  } = req.body;
+
+  const newSubmission = {
+    id: Date.now(),
+    assignmentId: parseInt(assignmentId) || 1,
+    materiaId: parseInt(materiaId) || 1,
+    materiaNombre: materiaNombre || 'Materia Académica',
+    titulo: titulo || 'Entrega de Tarea',
+    tipo: tipo || 'TALLER',
+    estudianteId: parseInt(estudianteId) || 1,
+    estudianteNombre: estudianteNombre || 'Estudiante EduCol',
+    estudianteEmail: estudianteEmail || 'estudiante@educol.edu.co',
+    grado: grado || '10° A',
+    jornada: jornada || 'Mañana',
+    fechaEntrega: new Date().toISOString(),
+    archivo: archivo || {
+      nombre: 'documento_entregado.pdf',
+      tamanoMb: 1.0,
+      tipo: 'application/pdf',
+      url: ''
+    },
+    comentariosEstudiante: comentariosEstudiante || '',
+    estado: 'PENDIENTE',
+    nota: null,
+    anotacionesDocente: null,
+    docenteNombre: null,
+    fechaCalificacion: null
+  };
+
+  memorySubmissions.unshift(newSubmission);
+  res.json({ success: true, message: 'Tarea enviada exitosamente al profesor', submission: newSubmission });
+});
+
+// Profesor califica la tarea y envía nota con observaciones
+app.put('/api/submissions/:id/grade', (req, res) => {
+  const submissionId = parseInt(req.params.id);
+  const { nota, anotacionesDocente, docenteNombre } = req.body;
+
+  const submission = memorySubmissions.find(s => s.id === submissionId);
+  if (!submission) {
+    return res.status(404).json({ success: false, message: 'Entrega no encontrada' });
+  }
+
+  const parsedNota = parseFloat(nota);
+  submission.nota = !isNaN(parsedNota) ? parsedNota : 5.0;
+  submission.anotacionesDocente = anotacionesDocente || 'Revisado y aprobado.';
+  submission.docenteNombre = docenteNombre || 'Docente Evaluador';
+  submission.fechaCalificacion = new Date().toISOString();
+  submission.estado = 'CALIFICADO';
+
+  res.json({
+    success: true,
+    message: 'Nota y observaciones enviadas exitosamente al estudiante',
+    submission
+  });
+});
+
+// Obtener entregas de un estudiante específico (para Trabajos Calificados)
+app.get('/api/submissions/student/:studentId', (req, res) => {
+  const studentId = parseInt(req.params.studentId);
+  const list = memorySubmissions.filter(s => s.estudianteId === studentId);
+  res.json({ success: true, submissions: list });
 });
 
 app.listen(PORT, () => {

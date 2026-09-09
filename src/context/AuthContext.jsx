@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, fetchHealth } from '../services/api';
+import { loginUser, fetchHealth, fetchSchoolCrest, saveSchoolCrest } from '../services/api';
 
 const DEFAULT_NOTIFICATIONS = {
   ESTUDIANTE: [
@@ -183,6 +183,18 @@ export const AuthProvider = ({ children }) => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [serverConnected, setServerConnected] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [submissionsRefreshKey, setSubmissionsRefreshKey] = useState(0);
+
+  // Institutional Crest global state across ALL user profiles
+  const [schoolCrest, setSchoolCrest] = useState(() => {
+    try {
+      const saved = localStorage.getItem('educol3d_institutional_crest');
+      if (saved) return saved;
+    } catch (e) {}
+    return 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&auto=format&fit=crop&q=80';
+  });
+
+  const [institutionName, setInstitutionName] = useState('Institución Educativa Colombian Future');
 
   useEffect(() => {
     fetchHealth().then(res => {
@@ -190,7 +202,30 @@ export const AuthProvider = ({ children }) => {
         setServerConnected(true);
       }
     });
+
+    fetchSchoolCrest().then(res => {
+      if (res && res.crestUrl) {
+        setSchoolCrest(res.crestUrl);
+        if (res.institutionName) setInstitutionName(res.institutionName);
+        try {
+          localStorage.setItem('educol3d_institutional_crest', res.crestUrl);
+        } catch (e) {}
+      }
+    });
   }, []);
+
+  const updateSchoolCrest = async (newCrestUrl, newName) => {
+    setSchoolCrest(newCrestUrl);
+    if (newName) setInstitutionName(newName);
+    try {
+      localStorage.setItem('educol3d_institutional_crest', newCrestUrl);
+    } catch (e) {}
+    await saveSchoolCrest({ crestUrl: newCrestUrl, institutionName: newName || institutionName });
+  };
+
+  const notifySubmissionsUpdated = () => {
+    setSubmissionsRefreshKey(prev => prev + 1);
+  };
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
@@ -486,7 +521,14 @@ export const AuthProvider = ({ children }) => {
       // Schedule API
       schedulesStore,
       getScheduleForGrade,
-      updateScheduleForGrade
+      updateScheduleForGrade,
+      // Institutional Crest & School Identity
+      schoolCrest,
+      institutionName,
+      updateSchoolCrest,
+      // Submissions Synchronization
+      submissionsRefreshKey,
+      notifySubmissionsUpdated
     }}>
       {children}
     </AuthContext.Provider>

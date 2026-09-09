@@ -16,6 +16,13 @@ import AttendancePage from './pages/AttendancePage';
 import RectorAttendanceReportsPage from './pages/RectorAttendanceReportsPage';
 import CourseStudioPage from './pages/CourseStudioPage';
 import StudentAssignmentsPage from './pages/StudentAssignmentsPage';
+import SchoolCrestPage from './pages/SchoolCrestPage';
+import HandbookManagementPage from './pages/HandbookManagementPage';
+import HandbookViewPage from './pages/HandbookViewPage';
+import HierarchyTreePage from './pages/HierarchyTreePage';
+import StudentTaskUploadPage from './pages/StudentTaskUploadPage';
+import TeacherTaskMailPage from './pages/TeacherTaskMailPage';
+import StudentGradedTasksPage from './pages/StudentGradedTasksPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import RightCalendarDrawer from './components/RightCalendarDrawer';
@@ -29,6 +36,20 @@ function MainContent() {
       return <TeacherDashboard />;
     case 'course-studio':
       return <CourseStudioPage />;
+    case 'task-mail':
+      return <TeacherTaskMailPage />;
+    case 'submit-task':
+      return <StudentTaskUploadPage />;
+    case 'graded-tasks':
+      return <StudentGradedTasksPage />;
+    case 'school-crest':
+      return <SchoolCrestPage />;
+    case 'handbook-management':
+      return <HandbookManagementPage />;
+    case 'convivencia':
+      return <HandbookViewPage />;
+    case 'hierarchy':
+      return <HierarchyTreePage />;
     case 'assignments':
       return <StudentAssignmentsPage />;
     case 'attendance':

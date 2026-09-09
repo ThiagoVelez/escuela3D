@@ -22,7 +22,9 @@ export default function Navbar() {
     unreadCount,
     markNotificationAsRead,
     markAllNotificationsAsRead,
-    deleteNotification
+    deleteNotification,
+    schoolCrest,
+    institutionName
   } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -66,15 +68,35 @@ export default function Navbar() {
           </button>
 
           <div 
-            onClick={() => setActiveTab('subjects')}
-            className="flex items-center gap-2 cursor-pointer group"
+            onClick={() => setActiveTab(user?.rol === 'DOCENTE' ? 'teacher-panel' : (user?.rol === 'RECTOR' || user?.rol === 'ADMINISTRADOR') ? 'staff-management' : 'subjects')}
+            className="flex items-center gap-2.5 cursor-pointer group"
+            title={institutionName || 'EduCol Campus Institucional'}
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-primary flex items-center justify-center shadow-md group-hover:scale-105 transition-transform overflow-hidden border border-amber-200/80 p-0.5">
+              {schoolCrest ? (
+                <img 
+                  src={schoolCrest} 
+                  alt="Escudo Institucional" 
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.parentElement.querySelector('.fallback-crest-icon');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`fallback-crest-icon w-full h-full rounded-lg bg-primary text-white items-center justify-center ${schoolCrest ? 'hidden' : 'flex'}`}>
+                <GraduationCap className="w-5 h-5" />
+              </div>
             </div>
-            <span className="font-display font-bold text-xl md:text-2xl text-primary tracking-tight">
-              EduCol
-            </span>
+            <div className="flex flex-col">
+              <span className="font-display font-black text-lg sm:text-xl text-primary tracking-tight leading-none">
+                EduCol
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 truncate max-w-[120px] sm:max-w-[220px] leading-tight mt-0.5">
+                {institutionName || 'Institución Educativa'}
+              </span>
+            </div>
           </div>
         </div>
 

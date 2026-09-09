@@ -12,7 +12,12 @@ import {
   ShieldCheck, 
   GitBranch, 
   Clock,
-  School
+  School,
+  Mail,
+  Network,
+  Shield,
+  UploadCloud,
+  Award
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -22,6 +27,9 @@ export default function Sidebar() {
     if (user.rol === 'DOCENTE') {
       return [
         { id: 'teacher-panel', label: 'Panel Docente & Directorio', icon: Users },
+        { id: 'task-mail', label: 'Correo de Tareas', icon: Mail },
+        { id: 'hierarchy', label: 'Jerarquía', icon: Network },
+        { id: 'convivencia', label: 'Manual de Convivencia', icon: BookOpen },
         { id: 'course-studio', label: 'Diseño & Gestión de Cátedras', icon: School },
         { id: 'attendance', label: 'Toma de Asistencia', icon: CheckSquare },
         { id: 'schedule-view', label: 'Mi Horario de Clases', icon: Calendar },
@@ -33,6 +41,9 @@ export default function Sidebar() {
       return [
         { id: 'staff-management', label: 'Gestión de Personal', icon: ShieldCheck },
         { id: 'academic-setup', label: 'Asignación & Estructura Académica', icon: GitBranch },
+        { id: 'school-crest', label: 'Escudo del Colegio', icon: Shield },
+        { id: 'handbook-management', label: 'Manual de Convivencia', icon: BookOpen },
+        { id: 'hierarchy', label: 'Jerarquía', icon: Network },
         { id: 'schedule-builder', label: 'Gestión de Horarios', icon: Clock },
         { id: 'rector-attendance-reports', label: 'Reportes de Asistencia & Horarios', icon: FileText },
         { id: 'settings', label: 'Configuración', icon: Settings },
@@ -41,8 +52,11 @@ export default function Sidebar() {
     // Default ESTUDIANTE
     return [
       { id: 'subjects', label: 'Materias Activas', icon: BookOpen },
+      { id: 'submit-task', label: 'Entrega de Tareas', icon: UploadCloud },
+      { id: 'graded-tasks', label: 'Trabajos Calificados', icon: Award },
       { id: 'assignments', label: 'Trabajos & Evaluaciones', icon: CheckSquare },
       { id: 'schedule-view', label: 'Horario de Clases', icon: Calendar },
+      { id: 'convivencia', label: 'Manual de Convivencia', icon: FileText },
       { id: 'grades', label: 'Calificaciones', icon: GraduationCap },
       { id: 'settings', label: 'Configuración', icon: Settings },
     ];

@@ -218,3 +218,139 @@ export async function controlServerTime(targetDate, resetToRealTime = false) {
   }
 }
 
+// INSTITUTIONAL CREST (ESCUDO DEL COLEGIO)
+export async function fetchSchoolCrest() {
+  try {
+    const res = await fetch(`${API_BASE}/institutional/crest`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('API Error fetching crest, using fallback', e);
+  }
+  return {
+    success: true,
+    crestUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&auto=format&fit=crop&q=80',
+    institutionName: 'Institución Educativa Colombian Future',
+    motto: 'Ciencia, Innovación & Excelencia Inmersiva'
+  };
+}
+
+export async function saveSchoolCrest(data) {
+  try {
+    const res = await fetch(`${API_BASE}/institutional/crest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch (e) {
+    return { success: true, settings: data };
+  }
+}
+
+// MANUAL DE CONVIVENCIA
+export async function fetchHandbook() {
+  try {
+    const res = await fetch(`${API_BASE}/institutional/handbook`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.handbook;
+    }
+  } catch (e) {
+    console.warn('API Error fetching handbook', e);
+  }
+  return null;
+}
+
+export async function saveHandbook(data) {
+  try {
+    const res = await fetch(`${API_BASE}/institutional/handbook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch (e) {
+    return { success: true, handbook: data };
+  }
+}
+
+// JERARQUÍA INSTITUCIONAL
+export async function fetchHierarchy() {
+  try {
+    const res = await fetch(`${API_BASE}/institutional/hierarchy`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.hierarchy;
+    }
+  } catch (e) {
+    console.warn('API Error fetching hierarchy', e);
+  }
+  return null;
+}
+
+// ENTREGAS & CORREO DE TAREAS (CALIFICACIONES)
+export async function fetchSubmissions(filters = {}) {
+  try {
+    const params = new URLSearchParams();
+    if (filters.grado && filters.grado !== 'Todos') params.append('grado', filters.grado);
+    if (filters.materiaId && filters.materiaId !== 'Todas') params.append('materiaId', filters.materiaId);
+    if (filters.estado && filters.estado !== 'TODOS') params.append('estado', filters.estado);
+    if (filters.estudianteId) params.append('estudianteId', filters.estudianteId);
+
+    const res = await fetch(`${API_BASE}/submissions?${params.toString()}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.submissions;
+    }
+  } catch (e) {
+    console.warn('API Error fetching submissions', e);
+  }
+  return [];
+}
+
+export async function submitHomework(submissionData) {
+  try {
+    const res = await fetch(`${API_BASE}/submissions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submissionData)
+    });
+    return await res.json();
+  } catch (e) {
+    return {
+      success: true,
+      submission: { id: Date.now(), ...submissionData, estado: 'PENDIENTE', fechaEntrega: new Date().toISOString() }
+    };
+  }
+}
+
+export async function gradeSubmission(id, gradeData) {
+  try {
+    const res = await fetch(`${API_BASE}/submissions/${id}/grade`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(gradeData)
+    });
+    return await res.json();
+  } catch (e) {
+    return {
+      success: true,
+      submission: { id, ...gradeData, estado: 'CALIFICADO', fechaCalificacion: new Date().toISOString() }
+    };
+  }
+}
+
+export async function fetchStudentSubmissions(studentId) {
+  try {
+    const res = await fetch(`${API_BASE}/submissions/student/${studentId}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.submissions;
+    }
+  } catch (e) {
+    console.warn('API Error fetching student submissions', e);
+  }
+  return [];
+}
+
+
