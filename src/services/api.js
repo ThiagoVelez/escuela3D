@@ -163,3 +163,46 @@ export async function submitAssignment(assignmentId, respuestaText) {
     return { success: true, message: 'Entrega registrada en modo local' };
   }
 }
+
+export async function fetchServerTime() {
+  try {
+    const res = await fetch(`${API_BASE}/time`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn('Could not fetch server time, using client clock as fallback');
+  }
+  const now = new Date();
+  return {
+    iso: now.toISOString(),
+    timestamp: now.getTime(),
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    monthIndex: now.getMonth(),
+    day: now.getDate(),
+    dayOfWeek: now.getDay(),
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+    seconds: now.getSeconds(),
+    formattedDate: now.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+    formattedTime: now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+    timeZone: 'America/Bogota',
+    offsetMs: 0,
+    isControlled: false
+  };
+}
+
+export async function controlServerTime(targetDate, resetToRealTime = false) {
+  try {
+    const res = await fetch(`${API_BASE}/time/control`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetDate, resetToRealTime })
+    });
+    return await res.json();
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+

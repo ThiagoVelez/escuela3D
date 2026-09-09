@@ -22,6 +22,66 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// System Time & Date Control (Reliable 100% Server Clock)
+let systemTimeOffsetMs = 0;
+
+app.get('/api/time', (req, res) => {
+  const now = new Date(Date.now() + systemTimeOffsetMs);
+  
+  const dateOptions = {
+    timeZone: 'America/Bogota',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  };
+  const timeOptions = {
+    timeZone: 'America/Bogota',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  };
+
+  const rawDate = now.toLocaleDateString('es-CO', dateOptions);
+  const formattedDate = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+  const formattedTime = now.toLocaleTimeString('es-CO', timeOptions);
+
+  res.json({
+    iso: now.toISOString(),
+    timestamp: now.getTime(),
+    year: now.getFullYear(),
+    month: now.getMonth() + 1, // 1 - 12
+    monthIndex: now.getMonth(), // 0 - 11
+    day: now.getDate(),
+    dayOfWeek: now.getDay(), // 0 - 6
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+    seconds: now.getSeconds(),
+    formattedDate,
+    formattedTime,
+    timeZone: 'America/Bogota',
+    offsetMs: systemTimeOffsetMs,
+    isControlled: systemTimeOffsetMs !== 0
+  });
+});
+
+app.post('/api/time/control', (req, res) => {
+  const { targetDate, resetToRealTime } = req.body;
+  if (resetToRealTime) {
+    systemTimeOffsetMs = 0;
+    return res.json({ success: true, message: 'Reloj reestablecido a la hora real del sistema', offsetMs: 0 });
+  }
+  if (targetDate) {
+    const parsed = new Date(targetDate);
+    if (!isNaN(parsed.getTime())) {
+      systemTimeOffsetMs = parsed.getTime() - Date.now();
+      return res.json({ success: true, message: 'Fecha/Hora del sistema ajustada exitosamente', offsetMs: systemTimeOffsetMs });
+    }
+  }
+  res.status(400).json({ error: 'Parámetro targetDate inválido' });
+});
+
 // Initialize Database Schema from SQL file
 app.post('/api/init-db', async (req, res) => {
   const success = await initDatabase();
@@ -380,13 +440,13 @@ let memoryAssignments = [
   {
     id: 1,
     materiaId: 2,
-    subjectTitle: 'Biología 3D',
-    titulo: 'Taller Inmersivo: Adaptaciones Foliares del Frailejón',
-    descripcion: 'Análisis microscópico en 3D sobre la cutícula de las hojas del frailejón en el páramo de Chingaza.',
+    subjectTitle: 'Biología',
+    titulo: 'Taller: Adaptaciones Foliares del Frailejón',
+    descripcion: 'Análisis biológico sobre la cutícula de las hojas del frailejón en el páramo de Chingaza.',
     tipo: 'TALLER',
     gradoDestino: '10° A',
     jornadaDestino: 'Mañana',
-    fechaLimite: '2026-08-05',
+    fechaLimite: '2026-09-12',
     puntos: 100,
     docenteNombre: 'Dra. Valentina Ríos',
     estadoEstudiante: 'Pendiente'
@@ -394,16 +454,30 @@ let memoryAssignments = [
   {
     id: 2,
     materiaId: 1,
-    subjectTitle: 'Matemáticas 3D',
-    titulo: 'Cuestionario 3D: Vectores en Sistemas Tridimensionales',
-    descripcion: 'Resuelve los 5 ejercicios de geometría espacial utilizando el visor 3D.',
+    subjectTitle: 'Matemáticas',
+    titulo: 'Cuestionario: Vectores y Geometría Espacial',
+    descripcion: 'Resuelve los ejercicios de geometría y cálculo vectorial en R3.',
     tipo: 'CUESTIONARIO',
     gradoDestino: '10° A',
     jornadaDestino: 'Mañana',
-    fechaLimite: '2026-08-10',
+    fechaLimite: '2026-09-18',
     puntos: 100,
     docenteNombre: 'Ing. Alejandro Torres',
-    estadoEstudiante: 'Entregado'
+    estadoEstudiante: 'Pendiente'
+  },
+  {
+    id: 3,
+    materiaId: 3,
+    subjectTitle: 'Literatura Colombiana',
+    titulo: 'Ensayo Crítico: El Tiempo Circular en Macondo',
+    descripcion: 'Análisis textual sobre los símbolos de Soledad y el taller de Melquíades.',
+    tipo: 'ENSAYO',
+    gradoDestino: '10° A',
+    jornadaDestino: 'Mañana',
+    fechaLimite: '2026-09-25',
+    puntos: 100,
+    docenteNombre: 'Prof. Gabriel Mendoza',
+    estadoEstudiante: 'Pendiente'
   }
 ];
 
