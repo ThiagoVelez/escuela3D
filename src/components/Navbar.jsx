@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth, DEFAULT_AVATARS } from '../context/AuthContext';
-import UserRoleSwitcher from './UserRoleSwitcher';
 import { 
   Menu, 
   PanelLeftClose, 
@@ -9,8 +8,7 @@ import {
   BellOff, 
   Trash2, 
   Users, 
-  Check, 
-  ArrowLeftRight 
+  Check 
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -28,7 +26,6 @@ export default function Navbar() {
   } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const [filterUnread, setFilterUnread] = useState(false);
   const notifRef = useRef(null);
 
@@ -53,8 +50,7 @@ export default function Navbar() {
     : defaultRoleAvatar;
 
   return (
-    <>
-      <nav className="fixed top-0 left-0 w-full z-40 flex items-center justify-between px-3 sm:px-4 md:px-8 bg-white/70 backdrop-blur-md border-b border-white/40 shadow-sm h-16 md:h-20">
+    <nav className="fixed top-0 left-0 w-full z-40 flex items-center justify-between px-3 sm:px-4 md:px-8 bg-white/70 backdrop-blur-md border-b border-white/40 shadow-sm h-16 md:h-20">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Sidebar Drawer Toggle Button */}
           <button 
@@ -84,16 +80,6 @@ export default function Navbar() {
 
         {/* Top Actions */}
         <div className="flex items-center gap-2 sm:gap-3 relative">
-          
-          {/* Role Persona Switcher Button */}
-          <button
-            onClick={() => setShowRoleSwitcher(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-white text-slate-700 hover:text-primary border border-slate-200/80 shadow-xs text-xs font-bold transition-all hover:scale-105 active:scale-95"
-            title="Conmutador de Perfiles y Roles (Verificar fotos independientes)"
-          >
-            <ArrowLeftRight className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden sm:inline">{user?.rol || 'ESTUDIANTE'}</span>
-          </button>
 
           {/* Notifications Dropdown */}
           <div className="relative" ref={notifRef}>
@@ -245,12 +231,5 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
-
-      {/* Role & Persona Switcher Modal */}
-      <UserRoleSwitcher 
-        isOpen={showRoleSwitcher} 
-        onClose={() => setShowRoleSwitcher(false)} 
-      />
-    </>
   );
 }
