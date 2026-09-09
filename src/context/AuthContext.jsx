@@ -119,7 +119,7 @@ const DEFAULT_SCHEDULES = {
   ]
 };
 
-const DEFAULT_AVATARS = {
+export const DEFAULT_AVATARS = {
   ESTUDIANTE: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
   DOCENTE: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
   RECTOR: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
     rol: 'ESTUDIANTE', // 'ESTUDIANTE', 'DOCENTE', 'RECTOR', 'ADMINISTRADOR'
     grado: '10° A',
     jornada: 'Mañana',
-    institucion: 'Colombian Future',
+    institucion: 'Institución Educativa Colombian Future',
     logoInstitucion: DEFAULT_AVATARS.ESTUDIANTE,
     avatarUrl: DEFAULT_AVATARS.ESTUDIANTE,
     bannerUrl: 'banner-paramo',
@@ -196,31 +196,40 @@ export const AuthProvider = ({ children }) => {
     setSidebarOpen(prev => !prev);
   };
 
+  // Unique identifier key per user to completely isolate custom avatars and profiles
   const getUserKey = (userData) => {
-    return `${userData.id || 'anon'}_${userData.email || 'noemail'}`;
+    if (!userData) return 'anon';
+    if (userData.email) {
+      return `user_${userData.email.toLowerCase().trim()}`;
+    }
+    if (userData.id) {
+      return `id_${userData.id}`;
+    }
+    return `role_${userData.rol || 'ESTUDIANTE'}`;
   };
 
   const applyStoredProfile = (userData) => {
+    if (!userData) return userData;
     const key = getUserKey(userData);
     const stored = profileStore[key];
     const roleDefaultAvatar = DEFAULT_AVATARS[userData.rol] || DEFAULT_AVATARS.ESTUDIANTE;
     
-    let resolvedAvatar = userData.avatarUrl;
-    if (!resolvedAvatar || resolvedAvatar.includes('googleusercontent')) {
-      resolvedAvatar = roleDefaultAvatar;
+    // Priority:
+    // 1. Explicitly stored custom avatar for this exact user/email
+    // 2. Server-provided avatar (if from DB and not generic googleusercontent)
+    // 3. Role's distinct default avatar
+    let resolvedAvatar = roleDefaultAvatar;
+    if (stored && stored.avatarUrl && !stored.avatarUrl.includes('googleusercontent')) {
+      resolvedAvatar = stored.avatarUrl;
+    } else if (userData.avatarUrl && !userData.avatarUrl.includes('googleusercontent')) {
+      resolvedAvatar = userData.avatarUrl;
     }
 
-    if (stored) {
-      return {
-        ...userData,
-        avatarUrl: stored.avatarUrl && !stored.avatarUrl.includes('googleusercontent') ? stored.avatarUrl : resolvedAvatar,
-        bannerUrl: stored.bannerUrl ?? userData.bannerUrl,
-        nombre: stored.nombre ?? userData.nombre
-      };
-    }
     return {
       ...userData,
-      avatarUrl: resolvedAvatar
+      avatarUrl: resolvedAvatar,
+      bannerUrl: stored?.bannerUrl ?? userData.bannerUrl ?? (userData.rol === 'DOCENTE' ? 'banner-molecular' : userData.rol === 'RECTOR' ? 'banner-sol' : 'banner-paramo'),
+      nombre: stored?.nombre ?? userData.nombre
     };
   };
 
@@ -232,40 +241,64 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, mockRole = null) => {
     const apiUser = await loginUser(email, password);
-    const assignedRole = mockRole || (apiUser ? apiUser.rol : 'ESTUDIANTE');
-    let newUser;
-    if (apiUser) {
-      newUser = {
-        ...user,
-        ...apiUser,
-        rol: assignedRole
-      };
-    } else {
-      newUser = {
-        ...user,
-        email,
-        rol: assignedRole
-      };
-    }
-    newUser = applyStoredProfile(newUser);
-    setUser(newUser);
+    const assignedRole = mockRole || (apiUser ? apiUser.rol : (
+      email?.toLowerCase().includes('docente') ? 'DOCENTE' :
+      email?.toLowerCase().includes('admin') || email?.toLowerCase().includes('rector') ? 'RECTOR' : 'ESTUDIANTE'
+    ));
+    
+    const roleDefaultAvatar = DEFAULT_AVATARS[assignedRole] || DEFAULT_AVATARS.ESTUDIANTE;
+    
+    // Construct a brand new isolated user object, NEVER inheriting properties from previous user session
+    let freshUser = {
+      id: apiUser?.id || (assignedRole === 'DOCENTE' ? 2 : assignedRole === 'RECTOR' ? 3 : 1),
+      nombre: apiUser?.nombre || (assignedRole === 'DOCENTE' ? 'Dra. Valentina Ríos' : assignedRole === 'RECTOR' ? 'Carlos Administrador' : 'Mateo Gómez'),
+      email: email || apiUser?.email || (assignedRole === 'DOCENTE' ? 'docente@educol.edu.co' : assignedRole === 'RECTOR' ? 'admin@educol.edu.co' : 'estudiante@educol.edu.co'),
+      rol: assignedRole,
+      grado: apiUser?.grado || (assignedRole === 'RECTOR' ? 'Rectoría Institucional' : assignedRole === 'DOCENTE' ? 'Docente de Ciencias' : '10° A'),
+      jornada: apiUser?.jornada || 'Mañana',
+      institucion: apiUser?.institucion || 'Institución Educativa Colombian Future',
+      logoInstitucion: apiUser?.logoInstitucion || roleDefaultAvatar,
+      avatarUrl: apiUser?.avatarUrl || roleDefaultAvatar,
+      bannerUrl: apiUser?.bannerUrl || (assignedRole === 'DOCENTE' ? 'banner-molecular' : assignedRole === 'RECTOR' ? 'banner-sol' : 'banner-paramo'),
+      puntosExperiencia: apiUser?.puntosExperiencia || (assignedRole === 'RECTOR' ? 1000 : 450),
+      nivel3D: apiUser?.nivel3D || (assignedRole === 'RECTOR' ? 'Rector Institucional' : assignedRole === 'DOCENTE' ? 'Docente Experto' : 'Explorador Avanzado')
+    };
+
+    const finalUser = applyStoredProfile(freshUser);
+    setUser(finalUser);
     setActiveTab(getDefaultTabForRole(assignedRole));
     setIsAuthenticated(true);
   };
 
   const loginAsUser = (userData) => {
-    let newUser = {
-      ...user,
+    const assignedRole = userData.rol || 'ESTUDIANTE';
+    const roleDefaultAvatar = DEFAULT_AVATARS[assignedRole] || DEFAULT_AVATARS.ESTUDIANTE;
+    
+    let freshUser = {
+      id: userData.id || Date.now(),
+      nombre: userData.nombre || 'Usuario Institucional',
+      email: userData.email || 'usuario@educol.edu.co',
+      rol: assignedRole,
+      grado: userData.grado || (assignedRole === 'RECTOR' ? 'Rectoría' : assignedRole === 'DOCENTE' ? 'Docente de Ciencias' : '10° A'),
+      jornada: userData.jornada || 'Mañana',
+      institucion: userData.institucion || 'Institución Educativa Colombian Future',
+      logoInstitucion: userData.logoInstitucion || roleDefaultAvatar,
+      avatarUrl: userData.avatarUrl || roleDefaultAvatar,
+      bannerUrl: userData.bannerUrl || (assignedRole === 'DOCENTE' ? 'banner-molecular' : assignedRole === 'RECTOR' ? 'banner-sol' : 'banner-paramo'),
+      puntosExperiencia: userData.puntosExperiencia || (assignedRole === 'RECTOR' ? 1000 : 450),
+      nivel3D: userData.nivel3D || 'Usuario Institucional',
       ...userData
     };
-    newUser = applyStoredProfile(newUser);
-    setUser(newUser);
-    setActiveTab(getDefaultTabForRole(userData.rol));
+
+    const finalUser = applyStoredProfile(freshUser);
+    setUser(finalUser);
+    setActiveTab(getDefaultTabForRole(assignedRole));
     setIsAuthenticated(true);
   };
 
   const updateProfile = (updatedFields) => {
     setUser(prev => {
+      if (!prev) return prev;
       const updated = { ...prev, ...updatedFields };
       const key = getUserKey(updated);
       setProfileStore(store => ({
@@ -282,21 +315,75 @@ export const AuthProvider = ({ children }) => {
   };
 
   const switchRole = (newRole) => {
-    setUser(prev => {
-      const roleAvatar = DEFAULT_AVATARS[newRole] || DEFAULT_AVATARS.ESTUDIANTE;
-      const updated = {
-        ...prev,
-        rol: newRole,
-        grado: newRole === 'RECTOR' ? 'Rectoría' : newRole === 'DOCENTE' ? 'Docente Ciencias' : '10° A',
-        avatarUrl: roleAvatar
+    let freshPersona;
+    if (newRole === 'DOCENTE') {
+      freshPersona = {
+        id: 2,
+        nombre: 'Dra. Valentina Ríos',
+        email: 'docente@educol.edu.co',
+        rol: 'DOCENTE',
+        grado: 'Docente de Ciencias',
+        jornada: 'Mañana',
+        institucion: 'Institución Educativa Colombian Future',
+        logoInstitucion: DEFAULT_AVATARS.DOCENTE,
+        avatarUrl: DEFAULT_AVATARS.DOCENTE,
+        bannerUrl: 'banner-molecular',
+        puntosExperiencia: 650,
+        nivel3D: 'Docente Experto'
       };
-      return applyStoredProfile(updated);
-    });
+    } else if (newRole === 'RECTOR' || newRole === 'ADMINISTRADOR') {
+      freshPersona = {
+        id: 3,
+        nombre: 'Carlos Administrador',
+        email: 'admin@educol.edu.co',
+        rol: newRole,
+        grado: 'Rectoría Institucional',
+        jornada: 'Mañana',
+        institucion: 'Institución Educativa Colombian Future',
+        logoInstitucion: DEFAULT_AVATARS.RECTOR,
+        avatarUrl: DEFAULT_AVATARS.RECTOR,
+        bannerUrl: 'banner-sol',
+        puntosExperiencia: 1000,
+        nivel3D: 'Rector Institucional'
+      };
+    } else {
+      freshPersona = {
+        id: 1,
+        nombre: 'Mateo Gómez',
+        email: 'estudiante@educol.edu.co',
+        rol: 'ESTUDIANTE',
+        grado: '10° A',
+        jornada: 'Mañana',
+        institucion: 'Institución Educativa Colombian Future',
+        logoInstitucion: DEFAULT_AVATARS.ESTUDIANTE,
+        avatarUrl: DEFAULT_AVATARS.ESTUDIANTE,
+        bannerUrl: 'banner-paramo',
+        puntosExperiencia: 450,
+        nivel3D: 'Explorador Avanzado'
+      };
+    }
+    const finalUser = applyStoredProfile(freshPersona);
+    setUser(finalUser);
+    setActiveTab(getDefaultTabForRole(newRole));
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     setSelectedLab(null);
+    setUser({
+      id: 1,
+      nombre: 'Mateo Gómez',
+      email: 'estudiante@educol.edu.co',
+      rol: 'ESTUDIANTE',
+      grado: '10° A',
+      jornada: 'Mañana',
+      institucion: 'Institución Educativa Colombian Future',
+      logoInstitucion: DEFAULT_AVATARS.ESTUDIANTE,
+      avatarUrl: DEFAULT_AVATARS.ESTUDIANTE,
+      bannerUrl: 'banner-paramo',
+      puntosExperiencia: 450,
+      nivel3D: 'Explorador Avanzado'
+    });
   };
 
   // NOTIFICATION MANAGEMENT METHODS

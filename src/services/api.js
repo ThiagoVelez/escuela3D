@@ -114,6 +114,18 @@ export async function updateUserProfile(profileData) {
   }
 }
 
+export async function fetchUserProfile(identifier) {
+  try {
+    const res = await fetch(`${API_BASE}/users/profile/${encodeURIComponent(identifier)}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn('Could not fetch user profile from API', e);
+  }
+  return null;
+}
+
 export async function fetchTeacherStudents(filters = {}) {
   try {
     const params = new URLSearchParams(filters);

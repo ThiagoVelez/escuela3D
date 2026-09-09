@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, DEFAULT_AVATARS } from '../context/AuthContext';
 import ProfileEditModal, { BANNER_PRESETS } from '../components/ProfileEditModal';
 import { 
   Trophy, 
@@ -10,7 +10,8 @@ import {
   Mail, 
   Building, 
   Sliders, 
-  Star 
+  Star,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -21,7 +22,7 @@ export default function ProfilePage() {
   const getBannerStyle = () => {
     const defaultStyle = { backgroundImage: `url(${BANNER_PRESETS[0].url})`, backgroundSize: 'cover', backgroundPosition: 'center' };
     
-    if (!user.bannerUrl) {
+    if (!user?.bannerUrl) {
       return defaultStyle;
     }
     const preset = BANNER_PRESETS.find(b => b.id === user.bannerUrl);
@@ -33,6 +34,11 @@ export default function ProfilePage() {
     }
     return defaultStyle;
   };
+
+  const defaultRoleAvatar = DEFAULT_AVATARS[user?.rol] || DEFAULT_AVATARS.ESTUDIANTE;
+  const currentAvatar = user?.avatarUrl && !user.avatarUrl.includes('googleusercontent') 
+    ? user.avatarUrl 
+    : defaultRoleAvatar;
 
   const bannerStyle = getBannerStyle();
 
@@ -75,21 +81,21 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 text-center sm:text-left">
               <div className="relative">
                 <img 
-                  src={user.avatarUrl && !user.avatarUrl.includes('googleusercontent') ? user.avatarUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} 
+                  src={currentAvatar} 
                   alt="Avatar Perfil" 
                   onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+                    e.currentTarget.src = defaultRoleAvatar;
                   }}
                   className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white shadow-2xl object-cover bg-white"
                 />
                 <span className="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white" title="En línea"></span>
               </div>
               <div className="mb-2">
-                <h1 className="font-display font-bold text-2xl md:text-3xl text-slate-900">{user.nombre}</h1>
+                <h1 className="font-display font-bold text-2xl md:text-3xl text-slate-900">{user?.nombre}</h1>
                 <p className="text-xs sm:text-sm font-semibold text-primary flex items-center justify-center sm:justify-start gap-1.5 mt-0.5">
                   <GraduationCap className="w-4 h-4 flex-shrink-0" />
-                  <span>{user.grado || '10° Bachillerato'} • Jornada {user.jornada || 'Mañana'}</span>
+                  <span>{user?.grado || '10° Bachillerato'} • Jornada {user?.jornada || 'Mañana'}</span>
                 </p>
               </div>
             </div>
@@ -97,7 +103,7 @@ export default function ProfilePage() {
             {/* Role & Level Pill */}
             <div className="flex items-center gap-2 flex-wrap justify-center">
               <div className="px-4 py-1.5 rounded-full bg-primary text-white font-extrabold text-xs shadow-sm">
-                {user.rol || 'Estudiante'}
+                {user?.rol || 'Estudiante'}
               </div>
               <div className="px-4 py-1.5 rounded-full bg-slate-900 text-white font-bold text-xs shadow-sm flex items-center gap-1.5">
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
@@ -114,14 +120,14 @@ export default function ProfilePage() {
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 Correo Electrónico
               </span>
-              <span className="font-bold text-slate-800 text-xs sm:text-sm break-all">{user.email}</span>
+              <span className="font-bold text-slate-800 text-xs sm:text-sm break-all">{user?.email}</span>
             </div>
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
               <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
                 <Building className="w-3.5 h-3.5 text-slate-400" />
                 Institución Educativa
               </span>
-              <span className="font-bold text-slate-800 text-xs sm:text-sm">{user.institucion}</span>
+              <span className="font-bold text-slate-800 text-xs sm:text-sm">{user?.institucion}</span>
             </div>
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
               <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
@@ -130,9 +136,15 @@ export default function ProfilePage() {
               </span>
               <span className="font-bold text-emerald-600 text-xs sm:text-sm flex items-center gap-1">
                 <Zap className="w-4 h-4 text-emerald-600 fill-emerald-600" />
-                <span>{user.puntosExperiencia || 450} XP Acumulados</span>
+                <span>{user?.puntosExperiencia || 450} XP Acumulados</span>
               </span>
             </div>
+          </div>
+
+          {/* Profile Isolation Guarantee Note */}
+          <div className="mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-200/60 flex items-center gap-2 text-xs text-slate-600">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>Perfil y foto 100% aislados para <strong>{user?.email}</strong>. Los cambios realizados aquí no alteran a otros docentes ni al rector.</span>
           </div>
 
         </div>

@@ -1,7 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateUserProfile } from '../services/api';
-import { Check, X } from 'lucide-react';
+import { 
+  Check, 
+  X, 
+  Palette, 
+  Image as ImageIcon, 
+  Upload, 
+  User, 
+  Camera, 
+  Save, 
+  CheckCircle2, 
+  ShieldCheck 
+} from 'lucide-react';
 
 export const BANNER_PRESETS = [
   {
@@ -42,29 +53,41 @@ export const BANNER_PRESETS = [
 ];
 
 export const AVATAR_PRESETS = [
-  { id: 'av-1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', label: 'Estudiante 1' },
-  { id: 'av-2', url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', label: 'Estudiante 2' },
-  { id: 'av-3', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', label: 'Estudiante 3' },
-  { id: 'av-4', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', label: 'Estudiante 4' },
-  { id: 'av-5', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80', label: 'Rector / Institucional' }
+  { id: 'av-1', url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', label: 'Estudiante (Mateo)' },
+  { id: 'av-2', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', label: 'Estudiante (Sofía)' },
+  { id: 'av-3', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80', label: 'Docente (Dra. Valentina)' },
+  { id: 'av-4', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', label: 'Docente (Ing. Alejandro)' },
+  { id: 'av-5', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80', label: 'Rectoría / Directivo' },
+  { id: 'av-6', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', label: 'Académico / Tutor' }
 ];
 
 export default function ProfileEditModal({ isOpen, onClose }) {
   const { user, updateProfile } = useAuth();
-  const [selectedBanner, setSelectedBanner] = useState(user.bannerUrl || 'banner-paramo');
+  const [selectedBanner, setSelectedBanner] = useState(user?.bannerUrl || 'banner-paramo');
   const [customBannerDataUrl, setCustomBannerDataUrl] = useState(
-    user.bannerUrl?.startsWith('data:') ? user.bannerUrl : ''
+    user?.bannerUrl?.startsWith('data:') ? user.bannerUrl : ''
   );
-  const [selectedAvatar, setSelectedAvatar] = useState(user.avatarUrl || AVATAR_PRESETS[0].url);
+  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatarUrl || AVATAR_PRESETS[0].url);
   const [customAvatarDataUrl, setCustomAvatarDataUrl] = useState(
-    user.avatarUrl?.startsWith('data:') ? user.avatarUrl : ''
+    user?.avatarUrl?.startsWith('data:') ? user.avatarUrl : ''
   );
-  const [nombre, setNombre] = useState(user.nombre || '');
+  const [nombre, setNombre] = useState(user?.nombre || '');
   const [loading, setLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const bannerFileRef = useRef(null);
   const avatarFileRef = useRef(null);
+
+  // Sync state whenever the modal opens or the active user changes
+  useEffect(() => {
+    if (isOpen && user) {
+      setSelectedBanner(user.bannerUrl || 'banner-paramo');
+      setCustomBannerDataUrl(user.bannerUrl?.startsWith('data:') ? user.bannerUrl : '');
+      setSelectedAvatar(user.avatarUrl || AVATAR_PRESETS[0].url);
+      setCustomAvatarDataUrl(user.avatarUrl?.startsWith('data:') ? user.avatarUrl : '');
+      setNombre(user.nombre || '');
+    }
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -74,7 +97,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       setCustomBannerDataUrl(ev.target.result);
-      setSelectedBanner(''); // deselect presets
+      setSelectedBanner('');
     };
     reader.readAsDataURL(file);
   };
@@ -85,7 +108,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       setCustomAvatarDataUrl(ev.target.result);
-      setSelectedAvatar(''); // deselect presets
+      setSelectedAvatar('');
     };
     reader.readAsDataURL(file);
   };
@@ -94,13 +117,12 @@ export default function ProfileEditModal({ isOpen, onClose }) {
     e.preventDefault();
     setLoading(true);
 
-    // Determine final banner: custom upload > preset
     const finalBanner = customBannerDataUrl ? customBannerDataUrl : selectedBanner;
-    // Determine final avatar: custom upload > preset
     const finalAvatar = customAvatarDataUrl ? customAvatarDataUrl : selectedAvatar;
 
     const payload = {
       userId: user.id,
+      email: user.email,
       bannerUrl: finalBanner,
       avatarUrl: finalAvatar,
       nombre
@@ -118,7 +140,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
     setTimeout(() => {
       setSavedSuccess(false);
       onClose();
-    }, 900);
+    }, 800);
   };
 
   return (
@@ -130,27 +152,37 @@ export default function ProfileEditModal({ isOpen, onClose }) {
           onClick={onClose}
           className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors z-10"
         >
-          <span className="material-symbols-outlined text-xl">close</span>
+          <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-primary-container text-white flex items-center justify-center shadow-md">
-            <span className="material-symbols-outlined text-2xl">palette</span>
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-amber-500 text-white flex items-center justify-center shadow-md">
+            <Palette className="w-6 h-6" />
           </div>
           <div>
             <h2 className="font-display text-xl font-bold text-slate-900">Personalizar Perfil</h2>
-            <p className="text-xs text-slate-500">Selecciona el banner de fondo, tu foto de perfil o sube desde tu dispositivo</p>
+            <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+              <span className="font-semibold text-primary">{user?.nombre}</span>
+              <span>•</span>
+              <span className="bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full text-[10px]">{user?.rol || 'ESTUDIANTE'}</span>
+            </div>
           </div>
+        </div>
+
+        {/* Isolation Notice Banner */}
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl mb-6 text-xs text-emerald-900 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>Este cambio de foto y banner se aplicará <strong>únicamente a tu usuario ({user?.email})</strong> y no modificará el perfil de otros docentes ni directivos.</span>
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
           
-          {/* Banner 3D Selection (5 Predefined Banners) */}
+          {/* Banner Selection */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-primary text-base">image</span>
-              Banners Predefinidos EduCol 3D (5 Estilos)
+              <ImageIcon className="w-4 h-4 text-primary" />
+              Banners Institucionales (5 Estilos)
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -170,7 +202,6 @@ export default function ProfileEditModal({ isOpen, onClose }) {
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    {/* Background Preview */}
                     <div 
                       className="h-16 rounded-xl relative flex items-center justify-between p-3 mb-2 shadow-inner bg-slate-100"
                       style={{ backgroundImage: `url(${preset.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -178,12 +209,12 @@ export default function ProfileEditModal({ isOpen, onClose }) {
                       <div className="flex items-center gap-1.5 z-10">
                         <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
                         <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                          3D Theme
+                          Tema
                         </span>
                       </div>
                       {isSelected && (
                         <div className="w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center shadow-md z-10">
-                          <span className="material-symbols-outlined text-sm font-bold">check</span>
+                          <Check className="w-3.5 h-3.5 font-bold" />
                         </div>
                       )}
                     </div>
@@ -194,10 +225,10 @@ export default function ProfileEditModal({ isOpen, onClose }) {
               })}
             </div>
 
-            {/* Upload Banner from Device */}
+            {/* Upload Banner */}
             <div className="mt-4">
               <span className="text-xs font-bold text-slate-600 block mb-2 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-primary text-base">upload_file</span>
+                <Upload className="w-3.5 h-3.5 text-primary" />
                 O sube un banner desde tu dispositivo:
               </span>
               <div className="flex items-center gap-3">
@@ -206,7 +237,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
                   onClick={() => bannerFileRef.current?.click()}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-2 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-base">photo_library</span>
+                  <Camera className="w-4 h-4" />
                   Seleccionar Imagen
                 </button>
                 <input
@@ -242,7 +273,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
           {/* Avatar / Profile Picture Selection */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-primary text-base">account_circle</span>
+              <User className="w-4 h-4 text-primary" />
               Foto de Perfil / Avatar
             </label>
 
@@ -260,11 +291,12 @@ export default function ProfileEditModal({ isOpen, onClose }) {
                     className={`relative w-14 h-14 rounded-full overflow-hidden border-2 transition-all ${
                       isSelected ? 'border-primary ring-4 ring-primary/30 scale-110 shadow-md' : 'border-slate-200 hover:border-slate-400'
                     }`}
+                    title={av.label}
                   >
                     <img src={av.url} alt={av.label} className="w-full h-full object-cover" />
                     {isSelected && (
-                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-white font-bold text-lg">check</span>
+                      <div className="absolute inset-0 bg-primary/30 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-white font-black drop-shadow" />
                       </div>
                     )}
                   </button>
@@ -275,7 +307,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
             {/* Upload Avatar from Device */}
             <div className="mt-4">
               <span className="text-xs font-bold text-slate-600 block mb-2 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-primary text-base">upload_file</span>
+                <Upload className="w-3.5 h-3.5 text-primary" />
                 O sube tu foto desde el dispositivo:
               </span>
               <div className="flex items-center gap-3">
@@ -284,7 +316,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
                   onClick={() => avatarFileRef.current?.click()}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-2 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-base">add_a_photo</span>
+                  <Camera className="w-4 h-4" />
                   Seleccionar Foto
                 </button>
                 <input
@@ -317,7 +349,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Student Name */}
+          {/* User Name */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
               Nombre Visible
@@ -353,12 +385,12 @@ export default function ProfileEditModal({ isOpen, onClose }) {
                 </>
               ) : savedSuccess ? (
                 <>
-                  <span className="material-symbols-outlined text-base">check_circle</span>
+                  <CheckCircle2 className="w-4 h-4" />
                   ¡Guardado!
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-base">save</span>
+                  <Save className="w-4 h-4" />
                   Guardar Personalización
                 </>
               )}

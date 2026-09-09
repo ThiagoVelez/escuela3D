@@ -100,7 +100,7 @@ app.post('/api/auth/login', async (req, res) => {
   if (pool) {
     try {
       const [rows] = await pool.query(
-        'SELECT u.id, u.nombre, u.apellido, u.email, u.rol, u.grado_nivel, i.nombre as institucion, i.logo_url FROM usuarios u JOIN instituciones i ON u.institucion_id = i.id WHERE u.email = ? LIMIT 1',
+        'SELECT u.id, u.nombre, u.apellido, u.email, u.rol, u.grado_nivel, u.avatar_url, u.banner_url, i.nombre as institucion, i.logo_url FROM usuarios u JOIN instituciones i ON u.institucion_id = i.id WHERE u.email = ? LIMIT 1',
         [email]
       );
       if (rows.length > 0) {
@@ -114,6 +114,8 @@ app.post('/api/auth/login', async (req, res) => {
             grado: u.grado_nivel,
             institucion: u.institucion,
             logoInstitucion: u.logo_url,
+            avatarUrl: u.avatar_url || null,
+            bannerUrl: u.banner_url || null,
             puntosExperiencia: 450,
             nivel3D: 'Explorador Avanzado'
           }
@@ -124,20 +126,54 @@ app.post('/api/auth/login', async (req, res) => {
     }
   }
 
-  // Fallback demo user
-  res.json({
-    user: {
+  // Fallback demo user isolated per role to prevent cross-contamination
+  const lower = (email || '').toLowerCase();
+  let fallbackUser;
+  if (lower.includes('docente')) {
+    fallbackUser = {
+      id: 2,
+      nombre: 'Dra. Valentina Ríos',
+      email: email || 'docente@educol.edu.co',
+      rol: 'DOCENTE',
+      grado: 'Docente de Ciencias',
+      institucion: 'Institución Educativa Colombian Future',
+      logoInstitucion: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      bannerUrl: 'banner-molecular',
+      puntosExperiencia: 650,
+      nivel3D: 'Docente Experto'
+    };
+  } else if (lower.includes('admin') || lower.includes('rector')) {
+    fallbackUser = {
+      id: 3,
+      nombre: 'Carlos Administrador',
+      email: email || 'admin@educol.edu.co',
+      rol: 'RECTOR',
+      grado: 'Rectoría Institucional',
+      institucion: 'Institución Educativa Colombian Future',
+      logoInstitucion: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+      bannerUrl: 'banner-sol',
+      puntosExperiencia: 1000,
+      nivel3D: 'Rector Institucional'
+    };
+  } else {
+    fallbackUser = {
       id: 1,
       nombre: 'Mateo Gómez',
       email: email || 'estudiante@educol.edu.co',
-      rol: 'Estudiante',
+      rol: 'ESTUDIANTE',
       grado: '10° Bachillerato',
-      institucion: 'Colombian Future',
-      logoInstitucion: 'https://lh3.googleusercontent.com/aida-public/AB6AXuALy1tdYIB64Ed_uo1GTsH3xD-NYVfanKwZH1R3WWYS9H5Hx4v3B-f8ZS0-gWgXJH-xL6z1J1fbCq3BWza9pb7b4oluyEz0RAEiBAgUFlNoISwJxJ1L27hsaePuWpJI-QXA8Wuu8Oq5G21DnYv3kfv13-k4SFN4jKAdcvVaGQhF5FUdtebdiKQV39axInnfDe9MUH5DwGHkOfYmwW_h35zeUNsTrUTxnkBfKZ1VAehRUTpnuve2ABwqyA',
+      institucion: 'Institución Educativa Colombian Future',
+      logoInstitucion: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+      bannerUrl: 'banner-paramo',
       puntosExperiencia: 450,
       nivel3D: 'Explorador Avanzado'
-    }
-  });
+    };
+  }
+
+  res.json({ user: fallbackUser });
 });
 
 // Get Subjects Route
@@ -361,15 +397,36 @@ app.post('/api/users/staff', async (req, res) => {
 
 // Update Profile Customization (Avatar & Banner)
 app.put('/api/users/profile', async (req, res) => {
-  const { userId, avatarUrl, bannerUrl, nombre, apellido } = req.body;
+  const { userId, email, avatarUrl, bannerUrl, nombre } = req.body;
   const pool = await getPool();
 
-  if (pool && userId) {
+  if (pool && (userId || email)) {
     try {
-      await pool.query(
-        'UPDATE usuarios SET avatar_url = COALESCE(?, avatar_url), banner_url = COALESCE(?, banner_url) WHERE id = ?',
-        [avatarUrl || null, bannerUrl || null, userId]
-      );
+      const updates = [];
+      const params = [];
+      if (avatarUrl !== undefined) {
+        updates.push('avatar_url = ?');
+        params.push(avatarUrl);
+      }
+      if (bannerUrl !== undefined) {
+        updates.push('banner_url = ?');
+        params.push(bannerUrl);
+      }
+      if (nombre) {
+        updates.push('nombre = ?');
+        params.push(nombre);
+      }
+      if (updates.length > 0) {
+        let sql = `UPDATE usuarios SET ${updates.join(', ')}`;
+        if (userId) {
+          sql += ' WHERE id = ?';
+          params.push(userId);
+        } else {
+          sql += ' WHERE email = ?';
+          params.push(email);
+        }
+        await pool.query(sql, params);
+      }
     } catch (e) {
       console.error('[API Update Profile Error]', e.message);
     }
@@ -378,8 +435,43 @@ app.put('/api/users/profile', async (req, res) => {
   res.json({
     success: true,
     message: 'Perfil actualizado exitosamente en el servidor',
-    profile: { avatarUrl, bannerUrl, nombre, apellido }
+    profile: { userId, email, avatarUrl, bannerUrl, nombre }
   });
+});
+
+// Get User Profile by ID or Email
+app.get('/api/users/profile/:identifier', async (req, res) => {
+  const { identifier } = req.params;
+  const pool = await getPool();
+
+  if (pool) {
+    try {
+      const isNum = !isNaN(identifier) && !identifier.includes('@');
+      const query = isNum
+        ? 'SELECT id, nombre, apellido, email, rol, grado_nivel, avatar_url, banner_url FROM usuarios WHERE id = ? LIMIT 1'
+        : 'SELECT id, nombre, apellido, email, rol, grado_nivel, avatar_url, banner_url FROM usuarios WHERE email = ? LIMIT 1';
+      const [rows] = await pool.query(query, [identifier]);
+      if (rows.length > 0) {
+        const u = rows[0];
+        return res.json({
+          success: true,
+          user: {
+            id: u.id,
+            nombre: `${u.nombre} ${u.apellido}`,
+            email: u.email,
+            rol: u.rol,
+            grado: u.grado_nivel,
+            avatarUrl: u.avatar_url,
+            bannerUrl: u.banner_url
+          }
+        });
+      }
+    } catch (e) {
+      console.error('[API Get Profile Error]', e.message);
+    }
+  }
+
+  res.status(404).json({ success: false, error: 'Usuario no encontrado' });
 });
 
 // Get Students List for Teacher Directory
