@@ -6,7 +6,8 @@ import {
   Search, 
   ShieldCheck, 
   Award, 
-  Printer, 
+  Printer,
+  Download, 
   Bookmark, 
   CheckCircle2, 
   FileText,
@@ -94,10 +95,10 @@ export default function HandbookViewPage() {
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-all"
-              title="Imprimir o exportar a PDF"
+              title="Descargar como PDF"
             >
-              <Printer className="w-4 h-4 text-primary" />
-              <span>Imprimir / PDF</span>
+              <Download className="w-4 h-4 text-primary" />
+              <span>Descargar PDF</span>
             </button>
           </div>
         </div>

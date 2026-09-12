@@ -23,6 +23,10 @@ import HierarchyTreePage from './pages/HierarchyTreePage';
 import StudentTaskUploadPage from './pages/StudentTaskUploadPage';
 import TeacherTaskMailPage from './pages/TeacherTaskMailPage';
 import StudentGradedTasksPage from './pages/StudentGradedTasksPage';
+import StudentEvaluationsPage from './pages/StudentEvaluationsPage';
+import TeacherEvaluationsPage from './pages/TeacherEvaluationsPage';
+import SocialSchoolPage from './pages/SocialSchoolPage';
+import SchoolChatPage from './pages/SchoolChatPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import RightCalendarDrawer from './components/RightCalendarDrawer';
@@ -32,6 +36,14 @@ function MainContent() {
   const { activeTab } = useAuth();
 
   switch (activeTab) {
+    case 'evaluaciones':
+      return <StudentEvaluationsPage />;
+    case 'teacher-evaluations':
+      return <TeacherEvaluationsPage />;
+    case 'social-school':
+      return <SocialSchoolPage />;
+    case 'chat':
+      return <SchoolChatPage />;
     case 'teacher-panel':
       return <TeacherDashboard />;
     case 'course-studio':

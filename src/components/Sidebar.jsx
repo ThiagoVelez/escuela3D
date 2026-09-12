@@ -17,7 +17,9 @@ import {
   Network,
   Shield,
   UploadCloud,
-  Award
+  Award,
+  ClipboardCheck,
+  Share2
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -27,6 +29,8 @@ export default function Sidebar() {
     if (user.rol === 'DOCENTE') {
       return [
         { id: 'teacher-panel', label: 'Panel Docente & Directorio', icon: Users },
+        { id: 'teacher-evaluations', label: 'Evaluaciones', icon: ClipboardCheck },
+        { id: 'social-school', label: 'SocialSchool', icon: Share2 },
         { id: 'task-mail', label: 'Correo de Tareas', icon: Mail },
         { id: 'hierarchy', label: 'Jerarquía', icon: Network },
         { id: 'convivencia', label: 'Manual de Convivencia', icon: BookOpen },
@@ -39,6 +43,7 @@ export default function Sidebar() {
     }
     if (user.rol === 'RECTOR' || user.rol === 'ADMINISTRADOR') {
       return [
+        { id: 'social-school', label: 'SocialSchool', icon: Share2 },
         { id: 'staff-management', label: 'Gestión de Personal', icon: ShieldCheck },
         { id: 'academic-setup', label: 'Asignación & Estructura Académica', icon: GitBranch },
         { id: 'school-crest', label: 'Escudo del Colegio', icon: Shield },
@@ -52,6 +57,8 @@ export default function Sidebar() {
     // Default ESTUDIANTE
     return [
       { id: 'subjects', label: 'Materias Activas', icon: BookOpen },
+      { id: 'evaluaciones', label: 'Evaluaciones', icon: ClipboardCheck },
+      { id: 'social-school', label: 'SocialSchool', icon: Share2 },
       { id: 'submit-task', label: 'Entrega de Tareas', icon: UploadCloud },
       { id: 'graded-tasks', label: 'Trabajos Calificados', icon: Award },
       { id: 'assignments', label: 'Trabajos & Evaluaciones', icon: CheckSquare },

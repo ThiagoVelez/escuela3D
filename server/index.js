@@ -1205,6 +1205,1086 @@ app.get('/api/users/staff', (req, res) => {
   res.json({ success: true, staff: memoryStaff });
 });
 
+// =============================================================================
+// MÓDULO DE EVALUACIONES & PARCIALES (PROFESOR & ESTUDIANTE)
+// =============================================================================
+
+let memoryEvaluations = [
+  {
+    id: 1,
+    titulo: 'Parcial I: Geometría Espacial y Vectores en R3',
+    materia: 'Matemáticas 3D',
+    materiaId: 1,
+    grado: '10° A',
+    jornada: 'Mañana',
+    docenteId: 2,
+    docenteNombre: 'Ing. Alejandro Torres',
+    tiempoMinutos: 45,
+    puntosTotales: 100,
+    fechaLimite: '2026-09-30T23:59:00.000Z',
+    instrucciones: 'Lea atentamente cada pregunta. El parcial contiene preguntas de selección múltiple, análisis conceptual escrito y cálculo matemático.',
+    preguntas: [
+      {
+        id: 101,
+        tipo: 'OPCION_MULTIPLE',
+        enunciado: 'Dado dos vectores u = (3, 0, 4) y v = (0, 5, 0), ¿cuál es el resultado de su producto escalar (u · v)?',
+        opciones: ['0', '15', '20', '25'],
+        respuestaCorrecta: '0',
+        puntos: 25
+      },
+      {
+        id: 102,
+        tipo: 'MATEMATICAS',
+        enunciado: 'Calcule la magnitud o norma del vector tridimensional w = (2, 3, 6). Indique el valor exacto y el procedimiento.',
+        formula: '|w| = sqrt(x^2 + y^2 + z^2)',
+        respuestaEsperada: '7',
+        unidad: 'unidades',
+        puntos: 35
+      },
+      {
+        id: 103,
+        tipo: 'ESCRITURA',
+        enunciado: 'Explique brevemente la diferencia fundamental entre un vector libre en el espacio tridimensional y un punto geométrico de coordenadas fijas.',
+        criterios: 'Claridad teórica, uso de conceptos de dirección, sentido y magnitud.',
+        limitePalabras: 150,
+        puntos: 40
+      }
+    ],
+    createdAt: '2026-09-01T10:00:00.000Z'
+  },
+  {
+    id: 2,
+    titulo: 'Parcial Bimestral: Morfología y Fisiología Celular Andina',
+    materia: 'Biología 3D',
+    materiaId: 2,
+    grado: '10° A',
+    jornada: 'Mañana',
+    docenteId: 2,
+    docenteNombre: 'Dra. Valentina Ríos',
+    tiempoMinutos: 60,
+    puntosTotales: 100,
+    fechaLimite: '2026-10-05T23:59:00.000Z',
+    instrucciones: 'Examen teórico y aplicado sobre las adaptaciones celulares de la flora de páramo. Verifique el tiempo disponible antes de comenzar.',
+    preguntas: [
+      {
+        id: 201,
+        tipo: 'OPCION_MULTIPLE',
+        enunciado: '¿Cuál es la función principal de los tricomas densos en la superficie foliar de los frailejones (Espeletia)?',
+        opciones: [
+          'Aislar térmicamente contra temperaturas bajo cero y retener humedad',
+          'Facilitar la absorción de luz ultravioleta sin filtro',
+          'Acelerar la tasa de transpiración en época de lluvia',
+          'Producir clorofila adicional durante la noche'
+        ],
+        respuestaCorrecta: 'Aislar térmicamente contra temperaturas bajo cero y retener humedad',
+        puntos: 30
+      },
+      {
+        id: 202,
+        tipo: 'ESCRITURA',
+        enunciado: 'Describa el mecanismo osmótico que emplean las vacuolas de las células vegetales en alta montaña para evitar el congelamiento citoplasmático.',
+        criterios: 'Mención de concentración de solutos, potencial hídrico y presión de turgencia.',
+        limitePalabras: 200,
+        puntos: 40
+      },
+      {
+        id: 203,
+        tipo: 'MATEMATICAS',
+        enunciado: 'Si una muestra foliar de 50 cm2 retiene 120 ml de agua condensada de niebla en 6 horas, calcule la tasa promedio de captación en ml por cm2 por hora.',
+        formula: 'Tasa = Volumen / (Area * Tiempo)',
+        respuestaEsperada: '0.4',
+        unidad: 'ml / (cm2 * h)',
+        puntos: 30
+      }
+    ],
+    createdAt: '2026-09-05T14:00:00.000Z'
+  }
+];
+
+let memoryEvaluationSubmissions = [
+  {
+    id: 1,
+    evaluacionId: 1,
+    evaluacionTitulo: 'Parcial I: Geometría Espacial y Vectores en R3',
+    materia: 'Matemáticas 3D',
+    estudianteId: 102,
+    estudianteNombre: 'Sofía Rodríguez',
+    estudianteEmail: 'sofia.rodriguez@educol.edu.co',
+    grado: '10° A',
+    jornada: 'Mañana',
+    tiempoEmpleadoSegundos: 1950,
+    fechaEnvio: '2026-09-10T11:45:00.000Z',
+    estado: 'CALIFICADO',
+    calificacionTotal: 4.8,
+    retroalimentacionDocente: 'Excelente razonamiento en el cálculo de norma y definición vectorial precisa.',
+    docenteEvaluador: 'Ing. Alejandro Torres',
+    fechaCalificacion: '2026-09-11T16:00:00.000Z',
+    respuestas: [
+      { preguntaId: 101, tipo: 'OPCION_MULTIPLE', respuesta: '0', puntajeObtenido: 25 },
+      { preguntaId: 102, tipo: 'MATEMATICAS', respuesta: '7', procedimiento: '|w| = sqrt(4 + 9 + 36) = sqrt(49) = 7', puntajeObtenido: 35 },
+      { preguntaId: 103, tipo: 'ESCRITURA', respuesta: 'Un punto determina una posición estática en el espacio con coordenadas fijas (x,y,z), mientras que un vector representa una traslación que posee magnitud, dirección y sentido independiente de su punto de aplicación inicial.', puntajeObtenido: 38 }
+    ]
+  }
+];
+
+// Listar Evaluaciones (con filtro opcional de grado y materia)
+app.get('/api/evaluations', (req, res) => {
+  const { grado, materiaId } = req.query;
+  let list = memoryEvaluations;
+  if (grado && grado !== 'Todos') {
+    list = list.filter(e => e.grado === grado || e.grado === 'Todos');
+  }
+  if (materiaId) {
+    list = list.filter(e => e.materiaId === parseInt(materiaId));
+  }
+
+  // Devolver sin las respuestas correctas para seguridad del estudiante
+  const sanitizedList = list.map(ev => ({
+    ...ev,
+    preguntas: ev.preguntas.map(p => {
+      const { respuestaCorrecta, ...rest } = p;
+      return rest;
+    })
+  }));
+
+  res.json({ success: true, evaluations: sanitizedList });
+});
+
+// Detalle de una evaluación específica
+app.get('/api/evaluations/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const ev = memoryEvaluations.find(e => e.id === id);
+  if (!ev) {
+    return res.status(404).json({ success: false, message: 'Evaluación no encontrada' });
+  }
+  const sanitized = {
+    ...ev,
+    preguntas: ev.preguntas.map(p => {
+      const { respuestaCorrecta, ...rest } = p;
+      return rest;
+    })
+  };
+  res.json({ success: true, evaluation: sanitized });
+});
+
+// Crear nueva Evaluación (Docente)
+app.post('/api/evaluations', (req, res) => {
+  const {
+    titulo,
+    materia,
+    materiaId,
+    grado,
+    jornada,
+    docenteId,
+    docenteNombre,
+    tiempoMinutos,
+    puntosTotales,
+    fechaLimite,
+    instrucciones,
+    preguntas
+  } = req.body;
+
+  if (!titulo || !preguntas || !Array.isArray(preguntas) || preguntas.length === 0) {
+    return res.status(400).json({ success: false, message: 'Faltan datos requeridos o preguntas' });
+  }
+
+  const newEvaluation = {
+    id: Date.now(),
+    titulo: cleanServerText(titulo),
+    materia: cleanServerText(materia || 'Materia General'),
+    materiaId: parseInt(materiaId) || 1,
+    grado: cleanServerText(grado || '10° A'),
+    jornada: cleanServerText(jornada || 'Mañana'),
+    docenteId: parseInt(docenteId) || 2,
+    docenteNombre: cleanServerText(docenteNombre || 'Docente Evaluador'),
+    tiempoMinutos: parseInt(tiempoMinutos) || 45,
+    puntosTotales: parseInt(puntosTotales) || 100,
+    fechaLimite: fechaLimite || new Date(Date.now() + 14 * 86400000).toISOString(),
+    instrucciones: cleanServerText(instrucciones || 'Complete la prueba en el tiempo asignado.'),
+    preguntas: preguntas.map((q, idx) => ({
+      id: q.id || (Date.now() + idx),
+      tipo: q.tipo || 'OPCION_MULTIPLE',
+      enunciado: cleanServerText(q.enunciado || ''),
+      puntos: parseInt(q.puntos) || 20,
+      opciones: Array.isArray(q.opciones) ? q.opciones.map(opt => cleanServerText(opt)) : [],
+      respuestaCorrecta: q.respuestaCorrecta ? cleanServerText(q.respuestaCorrecta) : '',
+      formula: q.formula ? cleanServerText(q.formula) : '',
+      respuestaEsperada: q.respuestaEsperada ? cleanServerText(q.respuestaEsperada) : '',
+      unidad: q.unidad ? cleanServerText(q.unidad) : '',
+      criterios: q.criterios ? cleanServerText(q.criterios) : '',
+      limitePalabras: parseInt(q.limitePalabras) || 200
+    })),
+    createdAt: new Date().toISOString()
+  };
+
+  memoryEvaluations.unshift(newEvaluation);
+  res.json({ success: true, message: 'Evaluación creada y publicada exitosamente', evaluation: newEvaluation });
+});
+
+// Enviar Parcial (Estudiante - Botón "Enviar parcial")
+app.post('/api/evaluations/:id/submit', (req, res) => {
+  const evaluacionId = parseInt(req.params.id);
+  const evaluation = memoryEvaluations.find(e => e.id === evaluacionId);
+  if (!evaluation) {
+    return res.status(404).json({ success: false, message: 'Evaluación no encontrada' });
+  }
+
+  const {
+    estudianteId = 1,
+    estudianteNombre = 'Mateo Gómez',
+    estudianteEmail = 'estudiante@educol.edu.co',
+    grado = '10° A',
+    jornada = 'Mañana',
+    tiempoEmpleadoSegundos = 0,
+    respuestas = []
+  } = req.body;
+
+  // Calificación automática previa para preguntas de opción múltiple
+  let puntajeAuto = 0;
+  const processedRespuestas = respuestas.map(r => {
+    const originalQuestion = evaluation.preguntas.find(q => q.id === r.preguntaId);
+    let puntaje = 0;
+    if (originalQuestion && originalQuestion.tipo === 'OPCION_MULTIPLE') {
+      if (String(r.respuesta).trim().toLowerCase() === String(originalQuestion.respuestaCorrecta).trim().toLowerCase()) {
+        puntaje = originalQuestion.puntos || 0;
+      }
+    } else if (originalQuestion && originalQuestion.tipo === 'MATEMATICAS' && originalQuestion.respuestaEsperada) {
+      if (String(r.respuesta).trim().toLowerCase() === String(originalQuestion.respuestaEsperada).trim().toLowerCase()) {
+        puntaje = originalQuestion.puntos || 0;
+      }
+    }
+    puntajeAuto += puntaje;
+    return {
+      ...r,
+      puntajeObtenido: puntaje
+    };
+  });
+
+  const submission = {
+    id: Date.now(),
+    evaluacionId,
+    evaluacionTitulo: evaluation.titulo,
+    materia: evaluation.materia,
+    estudianteId: parseInt(estudianteId),
+    estudianteNombre: cleanServerText(estudianteNombre),
+    estudianteEmail: cleanServerText(estudianteEmail),
+    grado: cleanServerText(grado),
+    jornada: cleanServerText(jornada),
+    tiempoEmpleadoSegundos: parseInt(tiempoEmpleadoSegundos),
+    fechaEnvio: new Date().toISOString(),
+    estado: 'ENVIADO',
+    calificacionTotal: null,
+    puntajeAutoPreliminar: puntajeAuto,
+    retroalimentacionDocente: null,
+    docenteEvaluador: null,
+    fechaCalificacion: null,
+    respuestas: processedRespuestas
+  };
+
+  memoryEvaluationSubmissions.unshift(submission);
+
+  res.json({
+    success: true,
+    message: 'Parcial enviado exitosamente al profesor para su revisión',
+    submissionId: submission.id,
+    fechaEnvio: submission.fechaEnvio
+  });
+});
+
+// Obtener entregas de parciales para el Docente
+app.get('/api/evaluations/:id/submissions', (req, res) => {
+  const evaluacionId = parseInt(req.params.id);
+  const submissions = memoryEvaluationSubmissions.filter(s => s.evaluacionId === evaluacionId);
+  res.json({ success: true, submissions });
+});
+
+// Todas las entregas de parciales (para el panel docente)
+app.get('/api/evaluations-submissions/all', (req, res) => {
+  res.json({ success: true, submissions: memoryEvaluationSubmissions });
+});
+
+// Calificar Parcial (Docente)
+app.put('/api/evaluations/submissions/:id/grade', (req, res) => {
+  const submissionId = parseInt(req.params.id);
+  const submission = memoryEvaluationSubmissions.find(s => s.id === submissionId);
+  if (!submission) {
+    return res.status(404).json({ success: false, message: 'Entrega no encontrada' });
+  }
+
+  const { notaFinal, retroalimentacion, docenteNombre = 'Docente Evaluador', respuestasPuntajes } = req.body;
+
+  if (respuestasPuntajes && Array.isArray(respuestasPuntajes)) {
+    respuestasPuntajes.forEach(rp => {
+      const resp = submission.respuestas.find(r => r.preguntaId === rp.preguntaId);
+      if (resp) {
+        resp.puntajeObtenido = parseFloat(rp.puntajeObtenido) || 0;
+      }
+    });
+  }
+
+  submission.calificacionTotal = parseFloat(notaFinal) || 5.0;
+  submission.retroalimentacionDocente = cleanServerText(retroalimentacion || 'Parcial revisado y calificado.');
+  submission.docenteEvaluador = cleanServerText(docenteNombre);
+  submission.fechaCalificacion = new Date().toISOString();
+  submission.estado = 'CALIFICADO';
+
+  res.json({
+    success: true,
+    message: 'Parcial calificado exitosamente',
+    submission
+  });
+});
+
+// =============================================================================
+// MÓDULO SOCIALSCHOOL (RED SOCIAL INSTITUCIONAL PARA TODOS LOS ROLES)
+// =============================================================================
+
+let memorySocialStories = [
+  {
+    id: 1,
+    autorId: 3,
+    autorNombre: 'Carlos Administrador',
+    autorRol: 'RECTOR',
+    autorAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+    titulo: 'Inauguración Semana de la Ciencia',
+    texto: 'Bienvenidos a la Feria de Innovación y Robótica 2026 en el Auditorio Central.',
+    imagenUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80',
+    gradiente: 'from-amber-700 to-amber-950',
+    fecha: '2026-09-12T08:00:00.000Z'
+  },
+  {
+    id: 2,
+    autorId: 2,
+    autorNombre: 'Dra. Valentina Ríos',
+    autorRol: 'DOCENTE',
+    autorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    titulo: 'Muestras de Laboratorio 3D',
+    texto: 'Felicito a los alumnos de 10° por sus análisis morfológicos de alta precisión.',
+    imagenUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&auto=format&fit=crop&q=80',
+    gradiente: 'from-blue-700 to-indigo-950',
+    fecha: '2026-09-12T09:30:00.000Z'
+  },
+  {
+    id: 3,
+    autorId: 1,
+    autorNombre: 'Mateo Gómez',
+    autorRol: 'ESTUDIANTE',
+    autorAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    titulo: 'Preparando el Parcial de Matemáticas',
+    texto: 'Grupo de estudio activo en la biblioteca virtual repasando vectores tridimensionales.',
+    imagenUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80',
+    gradiente: 'from-emerald-700 to-teal-950',
+    fecha: '2026-09-12T11:00:00.000Z'
+  }
+];
+
+let memorySocialPosts = [
+  {
+    id: 1,
+    autorId: 3,
+    autorNombre: 'Carlos Administrador',
+    autorRol: 'RECTOR',
+    autorAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+    grado: 'Rectoría Institucional',
+    categoria: 'INSTITUCIONAL',
+    contenido: 'Comunidad educativa: Nos complace anunciar la apertura formal del periodo de evaluaciones bimestrales y los talleres preparatorios en laboratorios interactivos. Exhortamos a docentes y estudiantes a mantener la excelencia académica y la puntualidad.',
+    imagenUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1000&auto=format&fit=crop&q=80',
+    fecha: '2026-09-12T08:30:00.000Z',
+    reacciones: {
+      meGusta: [1, 2],
+      aplausos: [1, 2],
+      inspirador: [2],
+      innovador: [1]
+    },
+    comentarios: [
+      {
+        id: 1,
+        autorId: 2,
+        autorNombre: 'Dra. Valentina Ríos',
+        autorRol: 'DOCENTE',
+        autorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+        contenido: 'Todo el equipo docente está listo para acompañar a los estudiantes en sus evaluaciones.',
+        fecha: '2026-09-12T09:00:00.000Z'
+      },
+      {
+        id: 2,
+        autorId: 1,
+        autorNombre: 'Mateo Gómez',
+        autorRol: 'ESTUDIANTE',
+        autorAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+        contenido: 'Muchas gracias Rector, listos para los parciales.',
+        fecha: '2026-09-12T09:15:00.000Z'
+      }
+    ]
+  },
+  {
+    id: 2,
+    autorId: 2,
+    autorNombre: 'Dra. Valentina Ríos',
+    autorRol: 'DOCENTE',
+    autorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    grado: 'Docente de Ciencias Naturales',
+    categoria: 'CIENCIA_3D',
+    contenido: 'Gran jornada en el laboratorio inmersivo con grado 10°. Los alumnos lograron mapear con éxito la cutícula celular del frailejón andino. No olviden revisar el módulo de Evaluaciones para su examen asignado.',
+    imagenUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1000&auto=format&fit=crop&q=80',
+    fecha: '2026-09-12T10:15:00.000Z',
+    reacciones: {
+      meGusta: [1, 3],
+      aplausos: [1, 3],
+      inspirador: [1],
+      innovador: [1, 3]
+    },
+    comentarios: [
+      {
+        id: 3,
+        autorId: 1,
+        autorNombre: 'Mateo Gómez',
+        autorRol: 'ESTUDIANTE',
+        autorAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+        contenido: 'La observación celular estuvo excelente profesora.',
+        fecha: '2026-09-12T10:45:00.000Z'
+      }
+    ]
+  },
+  {
+    id: 3,
+    autorId: 1,
+    autorNombre: 'Mateo Gómez',
+    autorRol: 'ESTUDIANTE',
+    autorAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    grado: '10° A',
+    categoria: 'ACADEMICO',
+    contenido: 'Terminamos de estructurar el proyecto de trigonometría y cálculo vectorial con el grupo de estudio. Listos para enviar el parcial en cuanto abra la plataforma.',
+    imagenUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1000&auto=format&fit=crop&q=80',
+    fecha: '2026-09-12T12:00:00.000Z',
+    reacciones: {
+      meGusta: [2, 3],
+      aplausos: [2],
+      inspirador: [3],
+      innovador: [2]
+    },
+    comentarios: []
+  }
+];
+
+// Obtener feed de publicaciones
+app.get('/api/social/posts', (req, res) => {
+  res.json({ success: true, posts: memorySocialPosts });
+});
+
+// Crear nueva publicación en SocialSchool
+app.post('/api/social/posts', (req, res) => {
+  const {
+    autorId = 1,
+    autorNombre = 'Usuario SocialSchool',
+    autorRol = 'ESTUDIANTE',
+    autorAvatar = '',
+    grado = '',
+    contenido,
+    categoria = 'EVENTO',
+    imagenUrl = ''
+  } = req.body;
+
+  if (!contenido || !contenido.trim()) {
+    return res.status(400).json({ success: false, message: 'El contenido de la publicación no puede estar vacío' });
+  }
+
+  const newPost = {
+    id: Date.now(),
+    autorId: parseInt(autorId),
+    autorNombre: cleanServerText(autorNombre),
+    autorRol: cleanServerText(autorRol),
+    autorAvatar: autorAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    grado: cleanServerText(grado),
+    categoria: cleanServerText(categoria),
+    contenido: cleanServerText(contenido),
+    imagenUrl: imagenUrl || '',
+    fecha: new Date().toISOString(),
+    reacciones: {
+      meGusta: [],
+      aplausos: [],
+      inspirador: [],
+      innovador: []
+    },
+    comentarios: []
+  };
+
+  memorySocialPosts.unshift(newPost);
+  res.json({ success: true, message: 'Publicación compartida exitosamente en SocialSchool', post: newPost });
+});
+
+// Alternar reacción en una publicación (Me gusta, Aplausos, Inspirador, Innovador)
+app.post('/api/social/posts/:id/react', (req, res) => {
+  const postId = parseInt(req.params.id);
+  const { userId = 1, tipo = 'meGusta' } = req.body;
+
+  const post = memorySocialPosts.find(p => p.id === postId);
+  if (!post) {
+    return res.status(404).json({ success: false, message: 'Publicación no encontrada' });
+  }
+
+  if (!post.reacciones) {
+    post.reacciones = { meGusta: [], aplausos: [], inspirador: [], innovador: [] };
+  }
+  if (!post.reacciones[tipo]) {
+    post.reacciones[tipo] = [];
+  }
+
+  const uId = parseInt(userId);
+  const index = post.reacciones[tipo].indexOf(uId);
+  let active = false;
+
+  if (index > -1) {
+    post.reacciones[tipo].splice(index, 1);
+    active = false;
+  } else {
+    post.reacciones[tipo].push(uId);
+    active = true;
+  }
+
+  res.json({ success: true, post, active, tipo, totalReacciones: post.reacciones[tipo].length });
+});
+
+// Comentar en una publicación
+app.post('/api/social/posts/:id/comment', (req, res) => {
+  const postId = parseInt(req.params.id);
+  const {
+    autorId = 1,
+    autorNombre = 'Usuario',
+    autorRol = 'ESTUDIANTE',
+    autorAvatar = '',
+    contenido
+  } = req.body;
+
+  if (!contenido || !contenido.trim()) {
+    return res.status(400).json({ success: false, message: 'El comentario no puede estar vacío' });
+  }
+
+  const post = memorySocialPosts.find(p => p.id === postId);
+  if (!post) {
+    return res.status(404).json({ success: false, message: 'Publicación no encontrada' });
+  }
+
+  const newComment = {
+    id: Date.now(),
+    autorId: parseInt(autorId),
+    autorNombre: cleanServerText(autorNombre),
+    autorRol: cleanServerText(autorRol),
+    autorAvatar: autorAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    contenido: cleanServerText(contenido),
+    fecha: new Date().toISOString()
+  };
+
+  post.comentarios.push(newComment);
+  res.json({ success: true, message: 'Comentario agregado', comment: newComment, post });
+});
+
+// Obtener historias activas
+app.get('/api/social/stories', (req, res) => {
+  res.json({ success: true, stories: memorySocialStories });
+});
+
+// Crear nueva historia
+app.post('/api/social/stories', (req, res) => {
+  const {
+    autorId = 1,
+    autorNombre = 'Usuario',
+    autorRol = 'ESTUDIANTE',
+    autorAvatar = '',
+    titulo = 'Historia Escolar',
+    texto = '',
+    imagenUrl = '',
+    gradiente = 'from-primary to-amber-900'
+  } = req.body;
+
+  const newStory = {
+    id: Date.now(),
+    autorId: parseInt(autorId),
+    autorNombre: cleanServerText(autorNombre),
+    autorRol: cleanServerText(autorRol),
+    autorAvatar: autorAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    titulo: cleanServerText(titulo),
+    texto: cleanServerText(texto),
+    imagenUrl: imagenUrl || '',
+    gradiente: gradiente || 'from-primary to-amber-900',
+    fecha: new Date().toISOString()
+  };
+
+  memorySocialStories.unshift(newStory);
+  res.json({ success: true, message: 'Historia publicada con éxito en SocialSchool', story: newStory });
+});
+
+// =============================================================================
+// MÓDULO DE REELS EDUCATIVOS (INSTAGRAM REELS ESCOLAR)
+// =============================================================================
+let memorySocialReels = [
+  {
+    id: 1,
+    autorId: 2,
+    autorNombre: 'Dra. Valentina Ríos',
+    autorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    autorRol: 'DOCENTE',
+    grado: 'Ciencias Naturales',
+    descripcion: 'Reacción química con catalizador en el laboratorio escolar. Observen la cristalización instantánea de la solución sobresaturada.',
+    tags: ['#Química', '#Ciencia', '#Experimento', '#Laboratorio'],
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&auto=format&fit=crop&q=80',
+    audioTrack: 'Sonido Original - Laboratorio de Ciencias EduCol',
+    likes: [1, 2, 3],
+    comentarios: [
+      {
+        id: 1,
+        autorId: 1,
+        autorNombre: 'Mateo Gómez',
+        autorAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+        texto: 'Increíble cómo se formó la estructura cristalina en segundos.',
+        fecha: '2026-09-12T10:00:00.000Z'
+      }
+    ]
+  },
+  {
+    id: 2,
+    autorId: 4,
+    autorNombre: 'Ing. Alejandro Torres',
+    autorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    autorRol: 'DOCENTE',
+    grado: 'Robótica y Mecatrónica',
+    descripcion: 'Calibración de servomotores y cinemática en el brazo robótico del colegio. Proyecto listo para la gran feria tecnológica.',
+    tags: ['#Robótica', '#Ingeniería', '#Arduino', '#Tecnología'],
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=800&auto=format&fit=crop&q=80',
+    audioTrack: 'Música Institucional - Innovación & Robótica',
+    likes: [1, 102],
+    comentarios: [
+      {
+        id: 2,
+        autorId: 102,
+        autorNombre: 'Sofía Rodríguez',
+        autorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        texto: 'El sensor ultrasónico quedó perfectamente programado.',
+        fecha: '2026-09-12T11:15:00.000Z'
+      }
+    ]
+  },
+  {
+    id: 3,
+    autorId: 102,
+    autorNombre: 'Sofía Rodríguez',
+    autorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    autorRol: 'ESTUDIANTE',
+    grado: '10° B',
+    descripcion: 'Exposición sobre el ecosistema de páramo y el frailejón andino. Trabajo de investigación y conservación ambiental.',
+    tags: ['#Biología', '#Ecosistemas', '#Páramo', '#MedioAmbiente'],
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&auto=format&fit=crop&q=80',
+    audioTrack: 'Audio Ambiental - Naturaleza & Biodiversidad',
+    likes: [1, 2],
+    comentarios: []
+  }
+];
+
+// Obtener todos los reels
+app.get('/api/social/reels', (req, res) => {
+  res.json({ success: true, reels: memorySocialReels });
+});
+
+// Dar / quitar like a un reel
+app.post('/api/social/reels/:id/like', (req, res) => {
+  const reelId = parseInt(req.params.id);
+  const { userId = 1 } = req.body;
+  const reel = memorySocialReels.find(r => r.id === reelId);
+  if (!reel) {
+    return res.status(404).json({ success: false, message: 'Reel no encontrado' });
+  }
+
+  const uId = parseInt(userId);
+  const hasLiked = reel.likes.includes(uId);
+  if (hasLiked) {
+    reel.likes = reel.likes.filter(id => id !== uId);
+  } else {
+    reel.likes.push(uId);
+  }
+
+  res.json({ success: true, likes: reel.likes, hasLiked: !hasLiked });
+});
+
+// Agregar comentario a un reel
+app.post('/api/social/reels/:id/comment', (req, res) => {
+  const reelId = parseInt(req.params.id);
+  const { autorId = 1, autorNombre = 'Usuario', autorAvatar = '', texto = '' } = req.body;
+  if (!texto.trim()) {
+    return res.status(400).json({ success: false, message: 'El comentario no puede estar vacío' });
+  }
+
+  const reel = memorySocialReels.find(r => r.id === reelId);
+  if (!reel) {
+    return res.status(404).json({ success: false, message: 'Reel no encontrado' });
+  }
+
+  const newComm = {
+    id: Date.now(),
+    autorId: parseInt(autorId),
+    autorNombre: cleanServerText(autorNombre),
+    autorAvatar: autorAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    texto: cleanServerText(texto),
+    fecha: new Date().toISOString()
+  };
+
+  reel.comentarios.push(newComm);
+  res.json({ success: true, comment: newComm, comentarios: reel.comentarios });
+});
+
+// Obtener actividad de reacciones y comentarios para un usuario
+app.get('/api/social/activity/:userId', (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const activities = [];
+
+  // Recorrer posts del usuario para recopilar interacciones
+  memorySocialPosts.forEach(post => {
+    if (post.autorId === userId) {
+      // Reacciones
+      if (post.reacciones) {
+        Object.keys(post.reacciones).forEach(tipo => {
+          (post.reacciones[tipo] || []).forEach(reactorId => {
+            if (reactorId !== userId) {
+              const reactorName = reactorId === 2 ? 'Dra. Valentina Ríos' : reactorId === 3 ? 'Carlos Administrador' : reactorId === 4 ? 'Ing. Alejandro Torres' : 'Sofía Rodríguez';
+              const reactorAvatar = reactorId === 2 ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80' : reactorId === 3 ? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+              const reactorRole = reactorId === 2 || reactorId === 4 ? 'DOCENTE' : reactorId === 3 ? 'RECTOR' : 'ESTUDIANTE';
+
+              activities.push({
+                id: `react-${post.id}-${tipo}-${reactorId}`,
+                tipo: 'REACCION',
+                tipoReaccion: tipo,
+                autorNombre: reactorName,
+                autorAvatar: reactorAvatar,
+                autorRol: reactorRole,
+                postId: post.id,
+                postPreview: post.contenido.substring(0, 60) + '...',
+                postImagen: post.imagenUrl || '',
+                fecha: post.fecha
+              });
+            }
+          });
+        });
+      }
+
+      // Comentarios
+      (post.comentarios || []).forEach(comm => {
+        if (comm.autorId !== userId) {
+          activities.push({
+            id: `comm-${comm.id}`,
+            tipo: 'COMENTARIO',
+            autorNombre: comm.autorNombre,
+            autorAvatar: comm.autorAvatar,
+            autorRol: comm.autorRol,
+            postId: post.id,
+            comentarioTexto: comm.contenido,
+            postPreview: post.contenido.substring(0, 60) + '...',
+            postImagen: post.imagenUrl || '',
+            fecha: comm.fecha
+          });
+        }
+      });
+    }
+  });
+
+  // Actividades destacadas adicionales de la comunidad
+  activities.push(
+    {
+      id: 'act-sample-1',
+      tipo: 'REACCION',
+      tipoReaccion: 'meGusta',
+      autorNombre: 'Sofía Rodríguez',
+      autorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      autorRol: 'ESTUDIANTE',
+      postId: 3,
+      postPreview: 'Terminamos de estructurar el proyecto de trigonometría...',
+      postImagen: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1000&auto=format&fit=crop&q=80',
+      fecha: '2026-09-12T14:10:00.000Z'
+    },
+    {
+      id: 'act-sample-2',
+      tipo: 'COMENTARIO',
+      autorNombre: 'Dra. Valentina Ríos',
+      autorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      autorRol: 'DOCENTE',
+      postId: 3,
+      comentarioTexto: 'Excelente dedicación en el informe. Muy buen rigor académico.',
+      postPreview: 'Terminamos de estructurar el proyecto de trigonometría...',
+      postImagen: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1000&auto=format&fit=crop&q=80',
+      fecha: '2026-09-12T14:25:00.000Z'
+    }
+  );
+
+  res.json({ success: true, activities });
+});
+
+// =============================================================================
+// MÓDULO DE CHAT INSTITUCIONAL EN TIEMPO REAL (100% OPERATIVO)
+// =============================================================================
+
+let memoryChatConversations = [
+  {
+    id: 1,
+    tipo: 'GRUPO',
+    nombre: 'Grupo 10° A - Curso Oficial',
+    avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=150&auto=format&fit=crop&q=80',
+    rol: 'GRUPO',
+    participantes: [1, 2, 3, 102, 103, 104],
+    ultimoMensaje: 'Recuerden revisar el módulo de Evaluaciones antes del viernes.',
+    ultimaFecha: '2026-09-12T14:30:00.000Z',
+    noLeidos: 2,
+    enLinea: true
+  },
+  {
+    id: 2,
+    tipo: 'DIRECTO',
+    nombre: 'Dra. Valentina Ríos',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    rol: 'DOCENTE',
+    participantes: [1, 2],
+    ultimoMensaje: 'Excelente trabajo en el informe celular de biología. Sigue así.',
+    ultimaFecha: '2026-09-12T13:45:00.000Z',
+    noLeidos: 0,
+    enLinea: true
+  },
+  {
+    id: 3,
+    tipo: 'DIRECTO',
+    nombre: 'Ing. Alejandro Torres',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    rol: 'DOCENTE',
+    participantes: [1, 4],
+    ultimoMensaje: 'El parcial de vectores en R3 ya está disponible en la plataforma.',
+    ultimaFecha: '2026-09-12T11:20:00.000Z',
+    noLeidos: 0,
+    enLinea: false
+  },
+  {
+    id: 4,
+    tipo: 'DIRECTO',
+    nombre: 'Carlos Administrador (Rectoría)',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+    rol: 'RECTOR',
+    participantes: [1, 3],
+    ultimoMensaje: 'Atento saludo comunidad. La feria de ciencias se llevará a cabo el próximo mes.',
+    ultimaFecha: '2026-09-11T16:00:00.000Z',
+    noLeidos: 0,
+    enLinea: true
+  },
+  {
+    id: 5,
+    tipo: 'DIRECTO',
+    nombre: 'Sofía Rodríguez',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    rol: 'ESTUDIANTE',
+    participantes: [1, 102],
+    ultimoMensaje: 'Hola Mateo, ¿vamos a repasar juntos los ejercicios de matemáticas hoy?',
+    ultimaFecha: '2026-09-12T15:00:00.000Z',
+    noLeidos: 0,
+    enLinea: true
+  }
+];
+
+let memoryChatMessages = {
+  1: [
+    {
+      id: 1001,
+      convId: 1,
+      emisorId: 2,
+      emisorNombre: 'Dra. Valentina Ríos',
+      emisorRol: 'DOCENTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      texto: 'Estimados estudiantes de 10° A: Sean bienvenidos al canal oficial de comunicación.',
+      fecha: '2026-09-12T09:00:00.000Z'
+    },
+    {
+      id: 1002,
+      convId: 1,
+      emisorId: 102,
+      emisorNombre: 'Sofía Rodríguez',
+      emisorRol: 'ESTUDIANTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      texto: 'Buenos días profesora. ¿Los parciales tendrán tiempo límite asignado en la plataforma?',
+      fecha: '2026-09-12T09:15:00.000Z'
+    },
+    {
+      id: 1003,
+      convId: 1,
+      emisorId: 2,
+      emisorNombre: 'Dra. Valentina Ríos',
+      emisorRol: 'DOCENTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      texto: 'Sí, cada evaluación cuenta con su cronómetro en vivo y al terminar deben presionar Enviar parcial.',
+      fecha: '2026-09-12T09:20:00.000Z'
+    },
+    {
+      id: 1004,
+      convId: 1,
+      emisorId: 2,
+      emisorNombre: 'Dra. Valentina Ríos',
+      emisorRol: 'DOCENTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      texto: 'Recuerden revisar el módulo de Evaluaciones antes del viernes.',
+      fecha: '2026-09-12T14:30:00.000Z'
+    }
+  ],
+  2: [
+    {
+      id: 2001,
+      convId: 2,
+      emisorId: 1,
+      emisorNombre: 'Mateo Gómez',
+      emisorRol: 'ESTUDIANTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+      texto: 'Buenas tardes profesora Valentina, envié mi informe sobre la flora de páramo.',
+      fecha: '2026-09-12T13:30:00.000Z'
+    },
+    {
+      id: 2002,
+      convId: 2,
+      emisorId: 2,
+      emisorNombre: 'Dra. Valentina Ríos',
+      emisorRol: 'DOCENTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      texto: 'Excelente trabajo en el informe celular de biología. Sigue así.',
+      fecha: '2026-09-12T13:45:00.000Z'
+    }
+  ],
+  3: [
+    {
+      id: 3001,
+      convId: 3,
+      emisorId: 4,
+      emisorNombre: 'Ing. Alejandro Torres',
+      emisorRol: 'DOCENTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      texto: 'El parcial de vectores en R3 ya está disponible en la plataforma.',
+      fecha: '2026-09-12T11:20:00.000Z'
+    }
+  ],
+  4: [
+    {
+      id: 4001,
+      convId: 4,
+      emisorId: 3,
+      emisorNombre: 'Carlos Administrador (Rectoría)',
+      emisorRol: 'RECTOR',
+      emisorAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+      texto: 'Atento saludo comunidad. La feria de ciencias se llevará a cabo el próximo mes.',
+      fecha: '2026-09-11T16:00:00.000Z'
+    }
+  ],
+  5: [
+    {
+      id: 5001,
+      convId: 5,
+      emisorId: 102,
+      emisorNombre: 'Sofía Rodríguez',
+      emisorRol: 'ESTUDIANTE',
+      emisorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      texto: 'Hola Mateo, ¿vamos a repasar juntos los ejercicios de matemáticas hoy?',
+      fecha: '2026-09-12T15:00:00.000Z'
+    }
+  ]
+};
+
+// Marcar todas las conversaciones como leídas
+app.put('/api/chat/conversations/read-all', (req, res) => {
+  memoryChatConversations.forEach(c => {
+    c.noLeidos = 0;
+  });
+  res.json({ success: true, message: 'Todas las conversaciones marcadas como leídas' });
+});
+
+// Marcar conversación individual como leída (resetear noLeidos)
+app.put('/api/chat/conversations/:convId/read', (req, res) => {
+  const convId = parseInt(req.params.convId);
+  const conv = memoryChatConversations.find(c => c.id === convId);
+  if (conv) {
+    conv.noLeidos = 0;
+    res.json({ success: true, message: 'Conversación marcada como leída' });
+  } else {
+    res.status(404).json({ success: false, message: 'Conversación no encontrada' });
+  }
+});
+
+// Listar conversaciones de chat
+app.get('/api/chat/conversations', (req, res) => {
+  res.json({ success: true, conversations: memoryChatConversations });
+});
+
+// Obtener mensajes de una conversación específica
+app.get('/api/chat/messages/:convId', (req, res) => {
+  const convId = parseInt(req.params.convId);
+  const messages = memoryChatMessages[convId] || [];
+  res.json({ success: true, messages });
+});
+
+// Enviar nuevo mensaje a una conversación
+app.post('/api/chat/messages/:convId', (req, res) => {
+  const convId = parseInt(req.params.convId);
+  const {
+    emisorId = 1,
+    emisorNombre = 'Usuario',
+    emisorRol = 'ESTUDIANTE',
+    emisorAvatar = '',
+    texto = '',
+    imagenUrl = ''
+  } = req.body;
+
+  if (!texto.trim() && !imagenUrl) {
+    return res.status(400).json({ success: false, message: 'El mensaje no puede estar vacío' });
+  }
+
+  const newMsg = {
+    id: Date.now(),
+    convId,
+    emisorId: parseInt(emisorId),
+    emisorNombre: cleanServerText(emisorNombre),
+    emisorRol: cleanServerText(emisorRol),
+    emisorAvatar: emisorAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    texto: cleanServerText(texto),
+    imagenUrl: imagenUrl || '',
+    fecha: new Date().toISOString()
+  };
+
+  if (!memoryChatMessages[convId]) {
+    memoryChatMessages[convId] = [];
+  }
+  memoryChatMessages[convId].push(newMsg);
+
+  // Actualizar último mensaje de la conversación
+  const conv = memoryChatConversations.find(c => c.id === convId);
+  if (conv) {
+    conv.ultimoMensaje = newMsg.texto || 'Archivo adjunto compartido';
+    conv.ultimaFecha = newMsg.fecha;
+  }
+
+  res.json({ success: true, message: newMsg });
+});
+
+// Crear o iniciar una nueva conversación
+app.post('/api/chat/conversations', (req, res) => {
+  const { nombre, avatar, rol, participanteId, tipo = 'DIRECTO' } = req.body;
+  const newConv = {
+    id: Date.now(),
+    tipo,
+    nombre: cleanServerText(nombre || 'Nuevo Chat'),
+    avatar: avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    rol: rol || 'ESTUDIANTE',
+    participantes: [1, parseInt(participanteId) || 2],
+    ultimoMensaje: 'Conversación iniciada',
+    ultimaFecha: new Date().toISOString(),
+    noLeidos: 0,
+    enLinea: true
+  };
+
+  memoryChatConversations.unshift(newConv);
+  memoryChatMessages[newConv.id] = [];
+  res.json({ success: true, conversation: newConv });
+});
+
 app.listen(PORT, () => {
   console.log(`=======================================================`);
   console.log(`[API Server] EduColombia API Server running on port ${PORT}`);

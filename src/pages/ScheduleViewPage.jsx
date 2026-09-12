@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Download } from 'lucide-react';
 
 export default function ScheduleViewPage() {
   const { user, sidebarOpen, getScheduleForGrade } = useAuth();
@@ -34,8 +35,8 @@ export default function ScheduleViewPage() {
             onClick={handlePrint}
             className="bg-white/80 border border-slate-200 hover:bg-white text-slate-700 font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2 self-start"
           >
-            <span className="material-symbols-outlined text-base">print</span>
-            <span>Imprimir Horario</span>
+            <Download className="w-4 h-4" />
+            <span>Descargar PDF</span>
           </button>
         </div>
       </header>
