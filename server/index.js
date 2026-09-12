@@ -2278,11 +2278,12 @@ app.post('/api/chat/messages/:convId', (req, res) => {
   }
   memoryChatMessages[convId].push(newMsg);
 
-  // Actualizar último mensaje de la conversación
+  // Actualizar último mensaje de la conversación y marcar no leído
   const conv = memoryChatConversations.find(c => c.id === convId);
   if (conv) {
     conv.ultimoMensaje = newMsg.texto || 'Archivo adjunto compartido';
     conv.ultimaFecha = newMsg.fecha;
+    conv.noLeidos = (conv.noLeidos || 0) + 1;
   }
 
   res.json({ success: true, message: newMsg });
