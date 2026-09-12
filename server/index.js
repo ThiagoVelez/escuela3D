@@ -1717,6 +1717,7 @@ app.post('/api/social/posts', (req, res) => {
   };
 
   memorySocialPosts.unshift(newPost);
+  saveSocialStateToDisk();
   res.json({ success: true, message: 'Publicación compartida exitosamente en SocialSchool', post: newPost });
 });
 
@@ -1749,6 +1750,7 @@ app.post('/api/social/posts/:id/react', (req, res) => {
     active = true;
   }
 
+  saveSocialStateToDisk();
   res.json({ success: true, post, active, tipo, totalReacciones: post.reacciones[tipo].length });
 });
 
@@ -1783,6 +1785,7 @@ app.post('/api/social/posts/:id/comment', (req, res) => {
   };
 
   post.comentarios.push(newComment);
+  saveSocialStateToDisk();
   res.json({ success: true, message: 'Comentario agregado', comment: newComment, post });
 });
 
@@ -1818,6 +1821,7 @@ app.post('/api/social/stories', (req, res) => {
   };
 
   memorySocialStories.unshift(newStory);
+  saveSocialStateToDisk();
   res.json({ success: true, message: 'Historia publicada con éxito en SocialSchool', story: newStory });
 });
 
@@ -1912,6 +1916,7 @@ app.post('/api/social/reels/:id/like', (req, res) => {
     reel.likes.push(uId);
   }
 
+  saveSocialStateToDisk();
   res.json({ success: true, likes: reel.likes, hasLiked: !hasLiked });
 });
 
@@ -1938,6 +1943,7 @@ app.post('/api/social/reels/:id/comment', (req, res) => {
   };
 
   reel.comentarios.push(newComm);
+  saveSocialStateToDisk();
   res.json({ success: true, comment: newComm, comentarios: reel.comentarios });
 });
 
@@ -2040,6 +2046,7 @@ app.post('/api/social/saved/:userId', (req, res) => {
   if (Array.isArray(savedIds)) {
     memoryUserSavedItems[userId] = savedIds;
   }
+  saveSocialStateToDisk();
   res.json({ success: true, savedIds: memoryUserSavedItems[userId] || [] });
 });
 
@@ -2213,6 +2220,45 @@ let memoryChatMessages = {
   ]
 };
 
+// Archivo de persistencia en disco para publicaciones, reels, comentarios y chats
+const SOCIAL_DATA_FILE = path.join(__dirname, 'social_state.json');
+
+function saveSocialStateToDisk() {
+  try {
+    const data = {
+      posts: memorySocialPosts,
+      stories: memorySocialStories,
+      reels: memorySocialReels,
+      savedItems: memoryUserSavedItems,
+      conversations: memoryChatConversations,
+      messages: memoryChatMessages
+    };
+    fs.writeFileSync(SOCIAL_DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Persistence] Error guardando estado social en disco:', e.message);
+  }
+}
+
+function loadSocialStateFromDisk() {
+  try {
+    if (fs.existsSync(SOCIAL_DATA_FILE)) {
+      const raw = fs.readFileSync(SOCIAL_DATA_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.posts) && data.posts.length > 0) memorySocialPosts = data.posts;
+      if (Array.isArray(data.stories) && data.stories.length > 0) memorySocialStories = data.stories;
+      if (Array.isArray(data.reels) && data.reels.length > 0) memorySocialReels = data.reels;
+      if (data.savedItems) Object.assign(memoryUserSavedItems, data.savedItems);
+      if (Array.isArray(data.conversations) && data.conversations.length > 0) memoryChatConversations = data.conversations;
+      if (data.messages) Object.assign(memoryChatMessages, data.messages);
+      console.log('[Persistence] Datos sociales y de chat cargados exitosamente desde disco.');
+    }
+  } catch (e) {
+    console.warn('[Persistence] Error cargando estado social desde disco:', e.message);
+  }
+}
+
+loadSocialStateFromDisk();
+
 // Marcar todas las conversaciones como leídas
 app.put('/api/chat/conversations/read-all', (req, res) => {
   memoryChatConversations.forEach(c => {
@@ -2286,6 +2332,7 @@ app.post('/api/chat/messages/:convId', (req, res) => {
     conv.noLeidos = (conv.noLeidos || 0) + 1;
   }
 
+  saveSocialStateToDisk();
   res.json({ success: true, message: newMsg });
 });
 
