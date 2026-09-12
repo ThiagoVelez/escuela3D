@@ -1402,7 +1402,7 @@ export default function SocialSchoolPage() {
                         </div>
 
                         {/* Comment Input */}
-                        <form onSubmit={handleAddReelComment} className="pt-2 border-t border-slate-200 flex items-center gap-2">
+                        <form onSubmit={(e) => handleAddReelComment(currentReel.id, e)} className="pt-2 border-t border-slate-200 flex items-center gap-2">
                           <input
                             type="text"
                             value={reelCommentInput}
