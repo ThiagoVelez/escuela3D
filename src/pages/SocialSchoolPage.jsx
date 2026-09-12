@@ -16,7 +16,9 @@ import {
   fetchSocialReels,
   likeSocialReel,
   addSocialReelComment,
-  fetchSocialActivity
+  fetchSocialActivity,
+  fetchUserSavedItems,
+  saveUserSavedItems
 } from '../services/api';
 import { 
   Share2, 
@@ -89,14 +91,49 @@ export default function SocialSchoolPage() {
   const [reelCommentInput, setReelCommentInput] = useState('');
   const reelVideoRef = useRef(null);
 
-  // Saved / Bookmarked Posts
+  const currentUserId = user?.id || user?.email || 'estudiante-1';
+
+  // Saved / Bookmarked Posts strictly isolated per user profile
   const [savedPostIds, setSavedPostIds] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('saved_social_posts') || '[]');
+      const uKey = `saved_social_posts_${user?.id || user?.email || 'estudiante-1'}`;
+      const saved = localStorage.getItem(uKey);
+      if (saved) return JSON.parse(saved);
+      // Check legacy key if exists
+      const legacy = localStorage.getItem('saved_social_posts');
+      return legacy ? JSON.parse(legacy) : [];
     } catch {
       return [];
     }
   });
+
+  // Sync saved items whenever current user changes or loads from server
+  useEffect(() => {
+    let isMounted = true;
+    const loadUserSaved = async () => {
+      const uKey = `saved_social_posts_${currentUserId}`;
+      try {
+        const localSaved = localStorage.getItem(uKey);
+        if (localSaved && isMounted) {
+          setSavedPostIds(JSON.parse(localSaved));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      const serverSaved = await fetchUserSavedItems(currentUserId);
+      if (serverSaved && isMounted && Array.isArray(serverSaved)) {
+        setSavedPostIds(serverSaved);
+        try {
+          localStorage.setItem(uKey, JSON.stringify(serverSaved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    loadUserSaved();
+    return () => { isMounted = false; };
+  }, [currentUserId]);
 
   // Explore Tab State
   const [exploreCategory, setExploreCategory] = useState('TODOS');
@@ -381,10 +418,12 @@ export default function SocialSchoolPage() {
     setSavedPostIds(prev => {
       const next = prev.includes(postId) ? prev.filter(id => id !== postId) : [...prev, postId];
       try {
-        localStorage.setItem('saved_social_posts', JSON.stringify(next));
+        const uKey = `saved_social_posts_${currentUserId}`;
+        localStorage.setItem(uKey, JSON.stringify(next));
       } catch (e) {
         console.error(e);
       }
+      saveUserSavedItems(currentUserId, next);
       return next;
     });
   };
@@ -633,10 +672,12 @@ export default function SocialSchoolPage() {
         id !== String(reelId + 10000)
       );
       try {
-        localStorage.setItem('saved_social_posts', JSON.stringify(next));
+        const uKey = `saved_social_posts_${currentUserId}`;
+        localStorage.setItem(uKey, JSON.stringify(next));
       } catch (e) {
         console.error(e);
       }
+      saveUserSavedItems(currentUserId, next);
       return next;
     });
   };

@@ -2019,6 +2019,23 @@ app.get('/api/social/activity/:userId', (req, res) => {
   res.json({ success: true, activities });
 });
 
+// Elementos guardados (Reels y Publicaciones) estrictamente aislados por usuario
+const memoryUserSavedItems = {};
+
+app.get('/api/social/saved/:userId', (req, res) => {
+  const userId = String(req.params.userId);
+  res.json({ success: true, savedIds: memoryUserSavedItems[userId] || [] });
+});
+
+app.post('/api/social/saved/:userId', (req, res) => {
+  const userId = String(req.params.userId);
+  const { savedIds } = req.body;
+  if (Array.isArray(savedIds)) {
+    memoryUserSavedItems[userId] = savedIds;
+  }
+  res.json({ success: true, savedIds: memoryUserSavedItems[userId] || [] });
+});
+
 // =============================================================================
 // MÓDULO DE CHAT INSTITUCIONAL EN TIEMPO REAL (100% OPERATIVO)
 // =============================================================================

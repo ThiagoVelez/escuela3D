@@ -695,7 +695,28 @@ export async function createChatConversation(convData) {
     };
   }
 }
+export async function fetchUserSavedItems(userId) {
+  try {
+    const res = await fetch(`${API_BASE}/social/saved/${userId}`);
+    const data = await res.json();
+    return data.savedIds || [];
+  } catch (e) {
+    console.warn('API Error fetching user saved items', e);
+    return null;
+  }
+}
 
-
-
+export async function saveUserSavedItems(userId, savedIds) {
+  try {
+    const res = await fetch(`${API_BASE}/social/saved/${userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ savedIds })
+    });
+    return await res.json();
+  } catch (e) {
+    console.warn('API Error saving user items', e);
+    return null;
+  }
+}
 
